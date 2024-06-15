@@ -1,0 +1,125 @@
+---------------------[ KEY WORDS ]---------------------
+  
+Flow control:
+  - If
+  - Else
+  - elif
+  - match/switch/case
+  - For
+  - While
+  - Break
+  - Continue
+Variable typing/declaration:
+  - Let/Var
+  - int
+  - float
+  - str/string
+  - char
+  - bool
+Functions:
+  - fn/func/def
+  - return
+OOP:
+  - struct
+  - class
+  - enum
+
+
+
+---------------------[ STRUCTURES ]--------------------
+
+Assigning:
+  // C / C++
+  < Type > < Id> = < Val >;
+  or 
+  // Rust
+  let < Id >: < Type > = < Val >;
+  or
+  // Go / kotlin / ...
+  var < Id >: < Type > = < Val >;
+
+If/Else statements:
+  // Python
+  if ( < Condition > ) {
+
+  } elif ( < Condition > ) {
+
+  } else {
+
+  }
+
+  or 
+  // C++ / C / C#
+  if ( < Condition > ) {
+
+  } else if ( < Condition > ){
+
+  } else {
+
+  }
+
+For loop:
+  // Python
+  for < Id > in range(f, l, d){
+
+    }
+  or 
+  //  C++ / C / C#
+  //       run once       condition    run every loop
+  for ( < Expression >; < Condition >; < Expression > ){
+
+  }
+
+While loop:
+  while ( < Condition > ) {
+
+  }
+
+match/case statements:
+  // Python
+  match < Id > {
+    case < Val > {
+
+    }
+    case < Val > {
+
+    }
+    case _{
+
+    }
+  }
+  or
+  // C++ / C
+  switch < Id > {
+    case < Val > {
+
+    }
+    case < Val > {
+
+    }
+    default{
+
+    }
+  }
+  or
+  // Rust
+  match < Id >{
+      < Val > => {},
+      < Val > => {},
+      _ => {}
+  }
+
+Comments:
+// Python
+# This is a Comment
+"""
+This is a multiline comment
+Woah new line :O
+"""
+or
+// C / C++ / Rust
+// This is a Comment
+/*
+This is a multiline comment
+Woah new line :O
+*/
