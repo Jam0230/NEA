@@ -1,0 +1,10 @@
+// Outputs hello world to the terminal
+// another comment
+print("Hello, World"); // sneaky comment
+
+/*
+Multi line comment!!!!
+No way
+*/
+
+print("Sneaky" /* sneaky comment v2 */);

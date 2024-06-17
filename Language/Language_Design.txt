@@ -4,25 +4,67 @@ Flow control:
   - If
   - Else
   - elif
-  - match/switch/case
+  - match
+  - case
   - For
   - While
   - Break
   - Continue
 Variable typing/declaration:
-  - Let/Var
+  - let
   - int
   - float
-  - str/string
+  - str
   - char
   - bool
 Functions:
-  - fn/func/def
+  - def
   - return
 OOP:
   - struct
   - class
   - enum
+  - priv
+  - pub
+
+-----------------------[ TOKENS ]----------------------
+
+[Key word]
+[Type]
+[Literal] => [int] [float] [str] [bool] [char]
+[ID] 
+[Delim] 
+[Operator] => [arithmetic] [assignment] [bitwise] [logical] [comparison]
+[Comment] 
+[Whitespace]
+
+-----------------[ REGULAR EXPRESSIONS ]---------------
+
+[Keyword] => (if|else|elif|match|case|for|while|break|continue|let|def|return|struct|class|enum|priv|pub)
+
+[Type] => (int|float|str|char|bool)
+
+[Literal] :
+    - [int] => [1-9][0-9]*|0 // only base 10
+    - [float] => [1-9][0-9]*\.[1-9][0-9]* // only decimal
+    - [str] => "[a-zA-Z0-9]*" // no symbols 
+    - [bool] => true|false
+    - [char] => '[a-zA-Z0-9]'
+
+[ID] => [a-zA-Z_][a-zA-Z0-9_]*
+
+[Delim] => [(){}\[\]<>;:,.] // not sure if it got everything so check later
+
+[Operator] :
+    - [arithmetic] => (\+ | - | \/ | \* | %)
+    - [assignment] => (= | +=| -= | \/= | *=)
+    - [bitwise] => () // not implemented yet 
+    - [logical] => (&& | \|\| | !)
+    - [comparison] => (== | != | < | > | <= | >=)
+
+[Comment] => \/\/.*|\/\*[\s\S]*?\*\/
+
+[Whitespace] => \s+
 
 
 
@@ -48,15 +90,6 @@ If/Else statements:
 
   }
 
-  or 
-  // C++ / C / C#
-  if ( < Condition > ) {
-
-  } else if ( < Condition > ){
-
-  } else {
-
-  }
 
 For loop:
   // Python
@@ -110,13 +143,6 @@ match/case statements:
   }
 
 Comments:
-// Python
-# This is a Comment
-"""
-This is a multiline comment
-Woah new line :O
-"""
-or
 // C / C++ / Rust
 // This is a Comment
 /*
