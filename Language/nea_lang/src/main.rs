@@ -1,7 +1,9 @@
-use scanner::formatting;
 use std::env;
 use utils::file_input;
 
+use scanner::finite_automata;
+
+mod parser;
 mod scanner;
 mod utils;
 
@@ -44,11 +46,10 @@ fn main() {
                     }
 
                     match file_input::read_file(arg) {
-                        Ok(mut file_contents) => {
-                            file_contents = formatting::remove_comments(&file_contents);
-                            formatting::remove_whitespace(&mut file_contents);
-
-                            println!("{}", file_contents);
+                        Ok(file_contents) => {
+                            let mut tokens =
+                                finite_automata::lexical_analyse(file_contents).expect("");
+                            parser::parser::parse(&mut tokens);
                         }
                         Err(e) => {
                             println!("{}", e);

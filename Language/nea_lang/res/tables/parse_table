@@ -1,0 +1,238 @@
+PP=>{
+  let-><SS>
+  [Id]-><SS>
+  if-><SS>
+  for-><SS>
+  while-><SS>
+  match-><SS>
+  $-><SS>
+}
+;;SS=>{
+  let-><S>,<SS>
+  [Id]-><S>,<SS>
+  if-><S>,<SS>
+  for-><S>,<SS>
+  while-><S>,<SS>
+  match-><S>,<SS>
+  $->
+  }->
+}
+;;S=>{
+  let-><DS>,;
+  [Id]-><AS>,;
+  if-><IS>
+  for-><FS>
+  while-><WS>
+  match-><MS>
+}
+;;DS=>{
+  let->let,[Type],[Id],=,<OE>
+}
+;;AS=>{
+  [Id]->[Id],[Assignment],<OE>
+}
+;;IS=>{
+  if->if,(,<OE>,),{,<SS>,},<EISP>,<ES>
+}
+;;EISP=>{
+  elif-><EIS>,<EISP>
+  else->
+  let->
+  [Id]->
+  if->
+  for->
+  while->
+  match->
+  }->
+  $->
+}
+;;EIS=>{
+  elif->elif,(,<OE>,),{,<SS>,}
+}
+;;ES=>{
+  else->else,{,<SS>,}
+  let->
+  [Id]->
+  if->
+  for->
+  while->
+  match->
+  }->
+  $->
+}
+;;MS=>{
+  match->match,,OE>,,,<CSP>,}
+}
+;;CSP=>{
+  case-><CS>,<CSP>]),},[
+}
+;;CS=>{
+  case->case,<OE>,{,<SS>,}
+}
+;;FS=>{
+  for->for,(,<DS>,;,<OE>,;,<AS>,),{,<SS>,}
+}
+;;WS=>{
+  while->while,(,<OE>,),{,<SS>,}
+}
+;;OE=>{
+  [Int]-><AE>,<OEP>
+  [Float]-><AE>,<OEP>
+  [Str]-><AE>,<OEP>
+  [Char]-><AE>,<OEP>
+  [Bool]-><AE>,<OEP>
+  [Id]-><AE>,<OEP>
+  (-><AE>,<OEP>
+}
+;;OEP=>{
+  ||->||,<AE>,<OEP>
+  ;->
+  )->
+  {->
+}
+;;AE=>{
+  [Int]-><NE>,<AEP>
+  [Float]-><NE>,<AEP>
+  [Str]-><NE>,<AEP>
+  [Char]-><NE>,<AEP>
+  [Bool]-><NE>,<AEP>
+  [Id]-><NE>,<AEP>
+  (-><NE>,<AEP>
+}
+;;AEP=>{
+  &&->&&,<NE>,<AEP>
+  ||->
+  ;->
+  (->
+  {->
+}
+;;NE=>{
+  [Int]-><CE>,<NEP>
+  [Float]-><CE>,<NEP>
+  [Str]-><CE>,<NEP>
+  [Char]-><CE>,<NEP>
+  [Bool]-><CE>,<NEP>
+  [Id]-><CE>,<NEP>
+  (-><CE>,<NEP>
+}
+;;NEP=>{
+  !->!,<CE>,<NEP>
+  &&->
+  ||->
+  ;->
+  (->
+  {->
+}
+;;CE=>{
+  [Int]-><ADE>,<CEP>
+  [Float]-><ADE>,<CEP>
+  [Str]-><ADE>,<CEP>
+  [Char]-><ADE>,<CEP>
+  [Bool]-><ADE>,<CEP>
+  [Id]-><ADE>,<CEP>
+  (-><ADE>,<CEP>
+}
+;;CEP=>{
+  [Comparison]->[Comparison],<ADE>,<CEP>
+  !->
+  &&->
+  ||->
+  ||->
+  ;->
+  (->
+  {->
+}
+;;ADE=>{
+  [Int]-><SE>,<ADEP>
+  [Float]-><SE>,<ADEP>
+  [Str]-><SE>,<ADEP>
+  [Char]-><SE>,<ADEP>
+  [Bool]-><SE>,<ADEP>
+  [Id]-><SE>,<ADEP>
+  (-><SE>,<ADEP>]
+}
+;;ADEP=>{
+  (+->+,<SE>,<ADEP>]
+  [Comparison]->
+  !->
+  &&->
+  ||->
+  ||->
+  ;->
+  (->
+  {->
+}
+;;SE=>{
+  [Int]-><ME>,<SEP>
+  [Float]->[<ME>,<SEP>]
+  [Str]-><ME>,<SEP>
+  [Char]-><ME>,<SEP>
+  [Bool]-><ME>,<SEP>
+  [Id]-><ME>,<SEP>
+  (-><ME>,<SEP>
+}
+;;SEP=>{
+  -->[->,<ME>,<SEP>
+  +->
+  [Comparison]->
+  !->
+  &&->
+  ||->
+  ||->
+  ;->
+  (->
+  {->
+}
+;;ME=>{
+  [Int]-><DE>,<MEP>
+  [Float]-><DE>,<MEP>
+  [Str]-><DE>,<MEP>
+  [Char]-><DE>,<MEP>
+  [Bool]-><DE>,<MEP>
+  [Id]-><DE>,<MEP>
+  (-><DE>,<MEP>
+}
+;;MEP=>{
+  *->*,<DE>,<MEP>
+  -->
+  +->
+  [Comparison]->
+  !->
+  &&->
+  ||->
+  ;->
+  (->
+  {->
+}
+;;DE=>{
+  [Int]-><EA>,<DEP>
+  [Float]-><EA>,<DEP>
+  [Str]-><EA>,<DEP>
+  [Char]-><EA>,<DEP>
+  [Bool]-><EA>,<DEP>
+  [Id]-><EA>,<DEP>
+  (-><EA>,<DEP>
+}
+;;DEP=>{
+  /->/,<EA>,<DEP>
+  *->
+  -->
+  +->
+  [Comparison]->
+  !->
+  &&->
+  ||->
+  ||->
+  ;->
+  (->
+  {->
+}
+;;EA=>{
+  [Int]->[Int]
+  [Float]->[Float]
+  [Str]->[Str]
+  [Char]->[Char]
+  [Bool]->[Bool]
+  [Id]->[Id]
+  (->(,<OE>,)
+}
