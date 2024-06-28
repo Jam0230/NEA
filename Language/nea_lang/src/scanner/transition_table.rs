@@ -243,7 +243,7 @@ pub fn load_trans_table() -> (
         (87, "Comparison"),
         (88, "Operator"),
         (89, "Assignment"),
-        (90, "Operator"),
+        (90, "Assignment"),
     ];
     (hash, excepting_states)
 }

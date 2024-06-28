@@ -14,15 +14,17 @@ pub fn parse(tokens: &mut Vec<Token>) {
     let mut stack = vec!["$", "<P>"];
 
     while !stack.is_empty() {
+        // thread::sleep(Duration::from_millis(500));
+        let temp = format!("{:?} | ", stack);
         let (next_s, next_i) = (stack.pop().unwrap(), input_stream.pop().unwrap());
-        println!("\n{:?} | {} | {}", stack, next_s, next_i);
+        println!("\n{}{}", temp, next_i);
 
         // if both stack and input stream have the same terminal on top
         if next_s == next_i.contents.as_str() || next_s == format!("[{}]", next_i._type).as_str() {
             continue;
         }
 
-        // check type of token
+        // check type of token for rule
         match hash.get(&(next_s, format!("[{}]", next_i._type).as_str())) {
             Some(symbols) => {
                 for symbol in symbols.iter().rev() {
@@ -34,6 +36,7 @@ pub fn parse(tokens: &mut Vec<Token>) {
             None => {}
         }
 
+        // check contents of token for rule
         match hash.get(&(next_s, next_i.contents.as_str())) {
             Some(symbols) => {
                 for symbol in symbols.iter().rev() {
