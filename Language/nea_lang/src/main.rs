@@ -49,6 +49,7 @@ fn main() {
                         Ok(file_contents) => {
                             let mut tokens =
                                 finite_automata::lexical_analyse(file_contents).expect("");
+
                             parser::parser::parse(&mut tokens);
                         }
                         Err(e) => {
@@ -63,4 +64,6 @@ fn main() {
             }
         }
     }
+
+    // parser::parse_table::generate_parse_table();
 }

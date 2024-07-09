@@ -2,28 +2,22 @@ P=>{
   let-><SS>
   [Id]-><SS>
   if-><SS>
-  for-><SS>
   while-><SS>
-  match-><SS>
   $-><SS>
 }
 ;;SS=>{
   let-><S>,<SS>
   [Id]-><S>,<SS>
   if-><S>,<SS>
-  for-><S>,<SS>
   while-><S>,<SS>
-  match-><S>,<SS>
-  $->
   }->
+  $->
 }
 ;;S=>{
   let-><DS>,;
   [Id]-><AS>,;
   if-><IS>
-  for-><FS>
   while-><WS>
-  match-><MS>
 }
 ;;DS=>{
   let->let,[Type],[Id],=,<OE>
@@ -40,9 +34,7 @@ P=>{
   let->
   [Id]->
   if->
-  for->
   while->
-  match->
   }->
   $->
 }
@@ -54,29 +46,15 @@ P=>{
   let->
   [Id]->
   if->
-  for->
   while->
-  match->
   }->
   $->
-}
-;;MS=>{
-  match->match,(,<OE>,),{,<CSP>,}
-}
-;;CSP=>{
-  case-><CS>,<CSP>
-  }->
-}
-;;CS=>{
-  case->case,<OE>,{,<SS>,}
-}
-;;FS=>{
-  for->for,(,<DS>,;,<OE>,;,<AS>,),{,<SS>,}
 }
 ;;WS=>{
   while->while,(,<OE>,),{,<SS>,}
 }
 ;;OE=>{
+  !-><AE>,<OEP>
   [Int]-><AE>,<OEP>
   [Float]-><AE>,<OEP>
   [Str]-><AE>,<OEP>
@@ -92,140 +70,125 @@ P=>{
   {->
 }
 ;;AE=>{
-  [Int]-><NE>,<AEP>
-  [Float]-><NE>,<AEP>
-  [Str]-><NE>,<AEP>
-  [Char]-><NE>,<AEP>
-  [Bool]-><NE>,<AEP>
-  [Id]-><NE>,<AEP>
-  (-><NE>,<AEP>
+  !-><EE>,<AEP>
+  [Int]-><EE>,<AEP>
+  [Float]-><EE>,<AEP>
+  [Str]-><EE>,<AEP>
+  [Char]-><EE>,<AEP>
+  [Bool]-><EE>,<AEP>
+  [Id]-><EE>,<AEP>
+  (-><EE>,<AEP>
 }
 ;;AEP=>{
-  &&->&&,<NE>,<AEP>
+  &&->&&,<EE>,<AEP>
   ||->
   ;->
   )->
   {->
 }
-;;NE=>{
-  [Int]-><CE>,<NEP>
-  [Float]-><CE>,<NEP>
-  [Str]-><CE>,<NEP>
-  [Char]-><CE>,<NEP>
-  [Bool]-><CE>,<NEP>
-  [Id]-><CE>,<NEP>
-  (-><CE>,<NEP>
+;;EE=>{
+  !-><IE>,<EEP>
+  [Int]-><IE>,<EEP>
+  [Float]-><IE>,<EEP>
+  [Str]-><IE>,<EEP>
+  [Char]-><IE>,<EEP>
+  [Bool]-><IE>,<EEP>
+  [Id]-><IE>,<EEP>
+  (-><IE>,<EEP>
 }
-;;NEP=>{
-  !->!,<CE>,<NEP>
+;;EEP=>{
+  ==->==,<IE>,<EEP>
+  !=->!=,<IE>,<EEP>
   &&->
   ||->
   ;->
   )->
   {->
 }
-;;CE=>{
-  [Int]-><ADE>,<CEP>
-  [Float]-><ADE>,<CEP>
-  [Str]-><ADE>,<CEP>
-  [Char]-><ADE>,<CEP>
-  [Bool]-><ADE>,<CEP>
-  [Id]-><ADE>,<CEP>
-  (-><ADE>,<CEP>
+;;IE=>{
+  !-><ADE>,<IEP>
+  [Int]-><ADE>,<IEP>
+  [Float]-><ADE>,<IEP>
+  [Str]-><ADE>,<IEP>
+  [Char]-><ADE>,<IEP>
+  [Bool]-><ADE>,<IEP>
+  [Id]-><ADE>,<IEP>
+  (-><ADE>,<IEP>
 }
-;;CEP=>{
-  [Comparison]->[Comparison],<ADE>,<CEP>
-  !->
+;;IEP=>{
+  >->>,<ADE>,<IEP>
+  <-><,<ADE>,<IEP>
+  >=->>=,<ADE>,<IEP>
+  <=-><=,<ADE>,<IEP>
+  ==->
+  !=->
   &&->
-  ||->
   ||->
   ;->
   )->
   {->
 }
 ;;ADE=>{
-  [Int]-><SE>,<ADEP>
-  [Float]-><SE>,<ADEP>
-  [Str]-><SE>,<ADEP>
-  [Char]-><SE>,<ADEP>
-  [Bool]-><SE>,<ADEP>
-  [Id]-><SE>,<ADEP>
-  (-><SE>,<ADEP>
+  !-><ME>,<ADEP>
+  [Int]-><ME>,<ADEP>
+  [Float]-><ME>,<ADEP>
+  [Str]-><ME>,<ADEP>
+  [Char]-><ME>,<ADEP>
+  [Bool]-><ME>,<ADEP>
+  [Id]-><ME>,<ADEP>
+  (-><ME>,<ADEP>
 }
 ;;ADEP=>{
-  +->+,<SE>,<ADEP>
-  [Comparison]->
-  !->
+  +->+,<ME>,<ADEP>
+  -->-,<ME>,<ADEP>
+  >->
+  <->
+  >=->
+  <=->
+  ==->
+  !=->
   &&->
-  ||->
-  ||->
-  ;->
-  )->
-  {->
-}
-;;SE=>{
-  [Int]-><ME>,<SEP>
-  [Float]-><ME>,<SEP>
-  [Str]-><ME>,<SEP>
-  [Char]-><ME>,<SEP>
-  [Bool]-><ME>,<SEP>
-  [Id]-><ME>,<SEP>
-  (-><ME>,<SEP>
-}
-;;SEP=>{
-  -->[->,<ME>,<SEP>
-  +->
-  [Comparison]->
-  !->
-  &&->
-  ||->
   ||->
   ;->
   )->
   {->
 }
 ;;ME=>{
-  [Int]-><DE>,<MEP>
-  [Float]-><DE>,<MEP>
-  [Str]-><DE>,<MEP>
-  [Char]-><DE>,<MEP>
-  [Bool]-><DE>,<MEP>
-  [Id]-><DE>,<MEP>
-  (-><DE>,<MEP>
+  !-><UE>,<MEP>
+  [Int]-><UE>,<MEP>
+  [Float]-><UE>,<MEP>
+  [Str]-><UE>,<MEP>
+  [Char]-><UE>,<MEP>
+  [Bool]-><UE>,<MEP>
+  [Id]-><UE>,<MEP>
+  (-><UE>,<MEP>
 }
 ;;MEP=>{
-  *->*,<DE>,<MEP>
-  -->
+  *->*,<UE>,<MEP>
+  /->/,<UE>,<MEP>
   +->
-  [Comparison]->
-  !->
+  -->
+  >->
+  <->
+  >=->
+  <=->
+  ==->
+  !=->
   &&->
   ||->
   ;->
   )->
   {->
 }
-;;DE=>{
-  [Int]-><EA>,<DEP>
-  [Float]-><EA>,<DEP>
-  [Str]-><EA>,<DEP>
-  [Char]-><EA>,<DEP>
-  [Bool]-><EA>,<DEP>
-  [Id]-><EA>,<DEP>
-  (-><EA>,<DEP>
-}
-;;DEP=>{
-  /->/,<EA>,<DEP>
-  *->
-  -->
-  +->
-  [Comparison]->
-  !->
-  &&->
-  ||->
-  ;->
-  )->
-  {->
+;;UE=>{
+  !->!,<UE>
+  [Int]-><EA>
+  [Float]-><EA>
+  [Str]-><EA>
+  [Char]-><EA>
+  [Bool]-><EA>
+  [Id]-><EA>
+  (-><EA>
 }
 ;;EA=>{
   [Int]->[Int]
@@ -236,3 +199,4 @@ P=>{
   [Id]->[Id]
   (->(,<OE>,)
 }
+;;

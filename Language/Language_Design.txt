@@ -114,6 +114,8 @@ Woah new line :O
 
 ---------------------[ CFG ]-----------------------------
 
+// Currently only variable declaration assigment, if and while statment
+
 #########################################
 #  non-terminals = < Name >             #
 #  terminals = "(value)" or [ Type ]    #
@@ -128,9 +130,7 @@ Woah new line :O
 <Statement> = <Declaration_Stmt> ";"
             | <Assign_Stmt> ";"
             | <If_Stmt>
-            | <For_Stmt>
             | <While_Stmt>
-            | <Match_Stmt>
 
 <Declaration_Stmt> = "let" [Type] [Id] "=" <Or_Expr> 
 
@@ -140,56 +140,47 @@ Woah new line :O
 
 
 <Elif_Stmt_Prime> = <Elif_Stmt> <Elif_Stmt_Prime>
-                  | ε
+        | ε
 
 <Elif_Stmt> = "elif" "(" <Or_Expr> ")" "{" <Statements> "}" 
 
 <Else_Stmt> = "else" "{" <Statements> "}"
             | ε
 
-
-<Match_Stmt> = "match" "(" <Or_Expr> ")" "{" <Case_Stmt_Prime> "}" 
-
-<Case_Stmt_Prime> = <Case_Stmt> <Case_Stmt_Prime>
-                  | ε
-
-<Case_Stmt> = "case" <Or_Expr> "{" <Statements> "}"
-
-
-<For_Stmt> = "for" "(" <Declaration_Stmt> ";" <Or_Expr> ";"  <Assign_Stmt> ")" "{" <Statements> "}"
 <While_Stmt> = "while" "(" <Or_Expr> ")" "{" <Statements> "}"
 
 <Or_Expr> = <And_Expr> <Or_Expr_Prime>
 <Or_Expr_Prime> = "||" <And_Expr> <Or_Expr_Prime>
                 | ε
 
-<And_Expr> = <Not_Expr> <And_Expr_Prime>
-<And_Expr_Prime> = "&&" <Not_Expr> <And_Expr_Prime>
-                 | ε
+<And_Expr> = <Equality_Expr> <And_Expr_Prime>
+<And_Expr_Prime> = "&&" <Equality_Expr> <And_Expr_Prime>
+                 | ε 
 
-<Not_Expr> = <Comparison_Expr> <Not_Expr_Prime>
-<Not_Expr_Prime> = "!" <Comparison_Expr> <Not_Expr_Prime>
-                 | ε
-
-<Comparison_Expr> = <Addition_Expr> <Comparison_Expr_Prime>
-<Comparison_Expr_Prime> = [comparison] <Addition_Expr> <Comparison_Expr_Prime>
-                        | ε 
-
-<Addition_Expr> = <Subtraction_Expr> <Addition_Expr_Prime>
-<Addition_Expr_Prime> = "+" <Subtraction_Expr> <Addition_Expr_Prime>
+<Equality_Expr> = <Inequality_Expr> <Equality_Expr_Prime>
+<Equality_Expr_Prime> = "==" <Inequality_Expr> <Equality_Expr_Prime>
+                      | "!=" <Inequality_Expr> <Equality_Expr_Prime>
                       | ε
 
-<Subtraction_Expr> = <Multiply_Expr> <Subtraction_Expr_Prime>
-<Subtraction_Expr_Prime> = "-" <Multiply_Expr> <Subtraction_Expr_Prime>
+<Inequality_Expr> = <Addition_Expr> <Inequality_Expr_Prime>
+<Inequality_Expr_Prime> = ">" <Addition_Expr> <Inequality_Expr_Prime>
+                        | "<" <Addition_Expr> <Inequality_Expr_Prime>
+                        | ">=" <Addition_Expr> <Inequality_Expr_Prime>
+                        | "<=" <Addition_Expr> <Inequality_Expr_Prime>
                         | ε
 
-<Multiply_Expr> = <Division_Expr> <Multiply_Expr_Prime>
-<Multiply_Expr_Prime> = "*" <Division_Expr> <Multiply_Expr_Prime>
-                      | ε
+<Addition_Expr> = <Multiplication_Expr> <Addition_Expr_Prime>
+<Addition_Expr_Prime = "+" <Multiplication_Expr> <Addition_Expr_Prime>
+                     | "-" <Multiplication_Expr> <Addition_Expr_Prime>
+                     | ε
 
-<Division_Expr> = <Expr_Atom> <Division_Expr_Prime>
-<Division_Expr_Prime> = "/" <Expr_Atom> <Division_Expr_Prime>
-                      | ε
+<Multiplication_Expr> = <Unary_Expr> <Multiplication_Expr_Prime>
+<Multiplication_Expr_Prime> = "*" <Unary_Expr> <Multiplication_Expr_Prime>
+                            | "/" <Unary_Expr> <Multiplication_Expr_Prime>
+                            | ε
+
+<Unary_Expr> = "!" <Unary_Expr>
+             | <Expr_Atom>
 
 <Expr_Atom> = [int]
             | [float]
