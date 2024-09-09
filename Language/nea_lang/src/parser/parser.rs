@@ -1,12 +1,4 @@
 use crate::{parser::parse_table::load_parse_table, scanner::finite_automata::Token};
-use std::fmt;
-
-#[derive(Debug, Clone, PartialEq)]
-struct Node {
-    _type: String,
-    content: Option<String>,
-    children: Vec<Node>,
-}
 
 // types of nodes (miniaturised language)
 //
@@ -27,108 +19,194 @@ struct Node {
 //     type = all operators and literal types ( +, -, ect)
 //     right = expr on right (only operators)
 //     left = expr on left (only operators and unary )
-//     value = value of literals  ( only literals )
+//     value = value of literals  ( only literals, one for each type )
 // var_type:
 //     type = all literal types
 //
 // other posible in future:
 // param (parameter list)
 // and more parts for current nodes (case statement)
-//
-// i dont want to code this ;-;
 
-impl Node {
-    fn new(_type: String, content: Option<String>, children: Vec<Node>) -> Node {
-        Node {
-            _type,
-            content,
-            children,
-        }
-    }
-
-    fn compress(&self) -> Option<Node> {
-        if self._type == String::from("Terminal") {
-            return Some(self.clone());
-        }
-
-        if self.children.len() == 0 {
-            return None;
-        }
-
-        let mut new_children: Vec<Node> = Vec::new();
-
-        for child in &self.children {
-            match child.compress() {
-                Some(compressed_child) => new_children.push(compressed_child),
-                None => {}
-            }
-        }
-
-        if !["<P>", "<SS>", "<S>"].contains(&self._type.as_str()) {
-            if new_children.len() == 1 {
-                return Some(new_children.iter().next().unwrap().clone());
-            } else {
-                let new_node = Node::new(self._type.clone(), self.content.clone(), new_children);
-                return Some(new_node);
-            }
-        }
-
-        let new_node = Node::new(self._type.clone(), self.content.clone(), new_children);
-        return Some(new_node);
-    }
-}
-impl fmt::Display for Node {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if self.content.is_some() {
-            write!(f, "{}: {}", self._type, self.content.clone().unwrap())
-        } else {
-            write!(f, "{}", self._type)
-        }
-    }
+#[derive(Debug, Clone)]
+pub struct Stmt {
+    pub stmt_type: String,            // type of statement ( if, else, while, ..)
+    pub decl_node: Option<Decl>,      // ast decleration node if decleration statement
+    pub expr: Option<Expr>,           // expression linked to statement ( conditions )
+    pub body: Option<Box<Stmt>>,      // stmt branch linked to stmt
+    pub elif_stmt: Option<Box<Stmt>>, // elif statement branch connected to if stmt
+    pub else_stmt: Option<Box<Stmt>>, // else statement connected to if stmt
+    pub next: Option<Box<Stmt>>,      // next statement in branch
 }
 
-fn print_tree(node: &Node, level: u32) {
-    println!("{}{}", (0..level).map(|_| " |").collect::<String>(), node);
-
-    for child in node.children.clone().iter().rev() {
-        print_tree(&child, level + 1);
-    }
+#[derive(Debug, Clone)]
+pub struct Decl {
+    pub decl_type: String,  // type of declerations (assignment, decleration, ..)
+    pub id: Option<String>, // identifier used in decleration
+    pub var_type: Option<String>, // variable type used in decleration
+    pub value: Option<Expr>, // expression branch linked to decl
+    pub ass_type: Option<String>, // assignment type used for assignment
 }
 
-pub fn parse(tokens: &mut Vec<Token>) {
+#[derive(Debug, Clone)]
+pub struct Expr {
+    pub expr_type: String,        // expression type ( operator or literal )
+    pub left: Option<Box<Expr>>,  // expression on left of operators
+    pub right: Option<Box<Expr>>, // expression of right of operator
+    pub val: Option<String>,      // value of literal or identifier name
+}
+
+#[derive(Debug, Clone)]
+enum AstItem {
+    // used in the ast stack to allow multiple types in one vector
+    Stmt(Stmt),
+    Decl(Decl),
+    Expr(Expr),
+    Terminal(String),
+}
+
+pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
     let hash = load_parse_table();
 
-    // the two stacks for table driven parsing
+    // index of token being parsed
     let mut token_index = 0;
-    let mut stack = vec!["$", "<P>"];
 
-    let mut node_stack: Vec<Node> = Vec::new();
+    // the two stacks for table driven parsing
+    let mut stack = vec!["$", "<SS>"];
+    let mut ast_stack: Vec<AstItem> = Vec::new();
 
     while !stack.is_empty() {
-        let temp = format!("{:?}", stack.iter().rev().collect::<Vec<&&str>>());
         let (next_s, next_i) = (stack.pop().unwrap(), tokens[token_index].clone());
-        println!("\n{} ||| {}", next_i, temp);
-
-        for node in node_stack.clone() {
-            println!("{}", node);
-        }
 
         if next_s.chars().next().unwrap() == '|' {
-            let split_token = next_s[1..next_s.len() - 1]
-                .split(",")
+            // collection node found
+            let parts = next_s[1..next_s.len() - 1]
+                .split(',')
                 .collect::<Vec<&str>>();
-            let num_to_collect = split_token[0].parse::<u32>().unwrap();
-            let collect_type = split_token[1];
 
-            let mut collected_nodes: Vec<Node> = Vec::new();
-            for _ in 0..num_to_collect {
-                collected_nodes.push(node_stack.pop().unwrap());
+            let (node_type, node_type_type) = (
+                parts[0].split('-').nth(0).unwrap(),
+                parts[0].split('-').nth(1).unwrap(),
+            );
+
+            let num_collected = parts[1].parse::<usize>().unwrap();
+
+            let mut collected_values: Vec<AstItem> = Vec::new(); // collecting the AST stack items
+                                                                 // used by the new node
+            for _ in 0..num_collected {
+                collected_values.push(ast_stack.pop().unwrap());
             }
-            let new_node = Node::new(String::from(collect_type), None, collected_nodes);
 
-            node_stack.push(new_node);
+            let mut parameters: Vec<Option<AstItem>> = Vec::new();
 
-            println!("{}-{}", num_to_collect, collect_type);
+            for char in parts[2].chars() {
+                // setting parameters for the node creation functions
+                if char == '_' {
+                    parameters.push(None);
+                    continue;
+                }
+
+                let index = char.to_string().parse::<usize>().unwrap();
+                parameters.push(Some(collected_values[index - 1].clone()));
+            }
+
+            match node_type {
+                // node creationg functions
+                "Stmt" => {
+                    let stmt = Stmt {
+                        stmt_type: node_type_type.to_string(),
+                        decl_node: match parameters[0].clone() {
+                            Some(AstItem::Decl(decl)) => Some(decl),
+                            _ => None,
+                        },
+                        expr: match parameters[1].clone() {
+                            Some(AstItem::Expr(expr)) => Some(expr),
+                            _ => None,
+                        },
+                        body: match parameters[2].clone() {
+                            Some(AstItem::Stmt(stmt)) => {
+                                if stmt.stmt_type == "None" {
+                                    None
+                                } else {
+                                    Some(Box::new(stmt))
+                                }
+                            }
+                            _ => None,
+                        },
+                        elif_stmt: match parameters[3].clone() {
+                            Some(AstItem::Stmt(stmt)) => {
+                                if stmt.stmt_type == "None" {
+                                    None
+                                } else {
+                                    Some(Box::new(stmt))
+                                }
+                            }
+                            _ => None,
+                        },
+                        else_stmt: match parameters[4].clone() {
+                            Some(AstItem::Stmt(stmt)) => {
+                                if stmt.stmt_type == "None" {
+                                    None
+                                } else {
+                                    Some(Box::new(stmt))
+                                }
+                            }
+                            _ => None,
+                        },
+                        next: match parameters[5].clone() {
+                            Some(AstItem::Stmt(stmt)) => {
+                                if stmt.stmt_type == "None" {
+                                    None
+                                } else {
+                                    Some(Box::new(stmt))
+                                }
+                            }
+                            _ => None,
+                        },
+                    };
+                    ast_stack.push(AstItem::Stmt(stmt));
+                }
+                "Decl" => {
+                    let decl = Decl {
+                        decl_type: node_type_type.to_string(),
+                        id: match parameters[0].clone() {
+                            Some(AstItem::Terminal(term)) => Some(term),
+                            _ => None,
+                        },
+                        var_type: match parameters[1].clone() {
+                            Some(AstItem::Terminal(term)) => Some(term),
+                            _ => None,
+                        },
+                        value: match parameters[2].clone() {
+                            Some(AstItem::Expr(expr)) => Some(expr),
+                            _ => None,
+                        },
+                        ass_type: match parameters[3].clone() {
+                            Some(AstItem::Terminal(term)) => Some(term),
+                            _ => None,
+                        },
+                    };
+                    ast_stack.push(AstItem::Decl(decl));
+                }
+                "Expr" => {
+                    let expr = Expr {
+                        expr_type: node_type_type.to_string(),
+                        left: match parameters[0].clone() {
+                            Some(AstItem::Expr(expr)) => Some(Box::new(expr)),
+                            _ => None,
+                        },
+                        right: match parameters[1].clone() {
+                            Some(AstItem::Expr(expr)) => Some(Box::new(expr)),
+                            _ => None,
+                        },
+                        val: match parameters[2].clone() {
+                            Some(AstItem::Terminal(term)) => Some(term),
+                            _ => None,
+                        },
+                    };
+                    ast_stack.push(AstItem::Expr(expr));
+                }
+                _ => {}
+            }
 
             continue;
         }
@@ -136,11 +214,11 @@ pub fn parse(tokens: &mut Vec<Token>) {
         // if both stack and input stream have the same terminal on top
         if next_s == next_i.contents.as_str() || next_s == format!("[{}]", next_i._type).as_str() {
             token_index += 1;
+
             if next_s != "$" {
-                let new_node =
-                    Node::new(String::from("Terminal"), Some(next_i.contents), Vec::new());
-                node_stack.push(new_node);
+                ast_stack.push(AstItem::Terminal(next_i.contents));
             }
+
             continue;
         }
 
@@ -162,6 +240,8 @@ pub fn parse(tokens: &mut Vec<Token>) {
                         continue;
                     }
                     None => {
+                        // syntax error
+                        // TODO: set up error handling :(
                         println!("Oh no >:(");
                         break;
                     }
@@ -169,5 +249,8 @@ pub fn parse(tokens: &mut Vec<Token>) {
             }
         }
     }
-    print_tree(&node_stack[0].compress().unwrap(), 0);
+    match ast_stack[0].clone() {
+        AstItem::Stmt(stmt) => Ok(stmt),
+        _ => Err(String::new()),
+    }
 }

@@ -1,11 +1,4 @@
-P=>{
-  let-><SS>
-  [Id]-><SS>
-  if-><SS>
-  while-><SS>
-  $-><SS>
-}
-;;SS=>{
+SS=>{
   let-><S>,<SS>
   [Id]-><S>,<SS>
   if-><S>,<SS>

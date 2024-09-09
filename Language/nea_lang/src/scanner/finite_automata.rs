@@ -98,5 +98,7 @@ pub fn lexical_analyse(content: String) -> Result<Vec<Token>, String> {
         contents: String::from("$"),
     });
 
+    println!("{:?}", tokens);
+
     Ok(tokens)
 }

@@ -5,6 +5,7 @@ use scanner::finite_automata;
 
 mod parser;
 mod scanner;
+mod semantics;
 mod utils;
 
 fn print_error(error: &str) {
@@ -50,7 +51,9 @@ fn main() {
                             let mut tokens =
                                 finite_automata::lexical_analyse(file_contents).expect("");
 
-                            parser::parser::parse(&mut tokens);
+                            let ast = parser::parser::parse(&mut tokens).expect("");
+                            println!("{:#?}", ast);
+                            semantics::semantic_analysis::semantic_analyser(ast);
                         }
                         Err(e) => {
                             println!("{}", e);

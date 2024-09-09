@@ -121,9 +121,6 @@ Woah new line :O
 #  terminals = "(value)" or [ Type ]    #
 #########################################
 
-
-<Program> = <Statements>
-
 <Statements> = <Statement> <Statements>
              | ε
 
@@ -147,7 +144,7 @@ Woah new line :O
 <Else_Stmt> = "else" "{" <Statements> "}"
             | ε
 
-<While_Stmt> = "while" "(" <Or_Expr> ")" "{" <Statements> "}"
+<While_Stmt> = "while" <Or_Expr> "{" <Statements> "}"
 
 <Or_Expr> = <And_Expr> <Or_Expr_Prime>
 <Or_Expr_Prime> = "||" <And_Expr> <Or_Expr_Prime>
@@ -183,6 +180,7 @@ Woah new line :O
              | <Expr_Atom>
 
 <Expr_Atom> = [int]
+let int a = "Hello, World!" * 3;
             | [float]
             | [str]
             | [char]

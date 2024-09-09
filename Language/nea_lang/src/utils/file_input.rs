@@ -11,7 +11,7 @@ fn get_file_path(file_name: &str) -> Result<PathBuf, std::io::Error> {
     } else {
         return Err(Error::new(
             ErrorKind::NotFound,
-            format!("'{}' cannot be found: no such file or directory", file_name),
+            format!("{:?} cannot be found: no such file or directory", path),
         ));
     }
 }

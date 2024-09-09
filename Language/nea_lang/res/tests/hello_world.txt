@@ -1,4 +1,1 @@
-let int a = 3 + 2 / 2;
-if a ==3 { }
-elif a == 4 {}
-else {}
+a = 3;
