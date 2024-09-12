@@ -1,4 +1,4 @@
-use crate::{parser::parse_table::load_parse_table, scanner::finite_automata::Token};
+use crate::{parser::parse_table::load_parse_table, scanner::scanner::Token};
 
 // types of nodes (miniaturised language)
 //

@@ -1,8 +1,6 @@
 use std::env;
 use utils::file_input;
 
-use scanner::finite_automata;
-
 mod parser;
 mod scanner;
 mod semantics;
@@ -49,7 +47,7 @@ fn main() {
                     match file_input::read_file(arg) {
                         Ok(file_contents) => {
                             let mut tokens =
-                                finite_automata::lexical_analyse(file_contents).expect("");
+                                scanner::scanner::lexical_analyse(file_contents).expect("");
 
                             let ast = parser::parser::parse(&mut tokens).expect("");
                             println!("{:#?}", ast);

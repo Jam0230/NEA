@@ -1,1 +1,5 @@
+let int a = 3;
 a = 3;
+while a == 3{
+    let int a = 3;
+  }

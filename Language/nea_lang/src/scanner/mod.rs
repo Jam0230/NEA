@@ -1,2 +1,2 @@
-pub mod finite_automata;
+pub mod scanner;
 pub mod transition_table;
