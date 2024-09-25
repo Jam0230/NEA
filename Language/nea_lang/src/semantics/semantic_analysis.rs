@@ -1,4 +1,5 @@
 use crate::parser::parser::{Decl, Expr, Stmt};
+use crate::semantics::operation_table;
 
 #[derive(Debug, Clone, PartialEq)]
 enum SymbolTypes {
@@ -7,6 +8,29 @@ enum SymbolTypes {
     Str,
     Bool,
     Char,
+}
+
+impl SymbolTypes {
+    fn stringify(self) -> String {
+        return match self {
+            SymbolTypes::Int => String::from("Int"),
+            SymbolTypes::Float => String::from("Float"),
+            SymbolTypes::Str => String::from("Str"),
+            SymbolTypes::Bool => String::from("Bool"),
+            SymbolTypes::Char => String::from("Char"),
+        };
+    }
+
+    fn from_string(type_s: String) -> SymbolTypes {
+        match type_s.as_str() {
+            "Int" => SymbolTypes::Int,
+            "Float" => SymbolTypes::Float,
+            "Str" => SymbolTypes::Str,
+            "Bool" => SymbolTypes::Bool,
+            "Char" => SymbolTypes::Char,
+            _ => SymbolTypes::Int,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -29,12 +53,104 @@ pub struct SymbolTable {
 }
 
 impl SymbolTable {
+    pub fn new(symbols: Vec<Symbol>, level: ScopeLevels) -> Self {
+        Self { symbols, level }
+    }
+
     fn search_for_symbol(self, symbol: String) -> bool {
         return if self.symbols.iter().filter(|x| x.name == symbol).count() == 0 {
             false
         } else {
             true
         };
+    }
+}
+
+fn search_scope_stack(symbol: String, scope_stack: Vec<SymbolTable>) -> Option<SymbolTypes> {
+    let mut result: Option<SymbolTypes> = None;
+
+    for symbol_table in scope_stack {
+        let symbol = symbol_table.symbols.into_iter().find(|x| x.name == symbol);
+        match symbol {
+            Some(symbol) => result = Some(symbol.s_type),
+            None => {}
+        }
+    }
+
+    result
+}
+
+fn type_check_expr(
+    current_expr: Expr,
+    symbol_tables: Vec<SymbolTable>,
+) -> Result<SymbolTypes, String> {
+    match current_expr.expr_type.as_str() {
+        "Id" => {
+            let _type =
+                search_scope_stack(current_expr.val.clone().unwrap(), symbol_tables.clone());
+
+            match _type {
+                Some(t) => return Ok(t),
+                None => {
+                    //TODO: You know what im going to type here :3
+                    return Err(format!(
+                        "No symbol '{}' in current scope",
+                        current_expr.val.unwrap()
+                    ));
+                }
+            }
+        }
+        "Int" | "Float" | "Str" | "Bool" | "Char" => {
+            return Ok(SymbolTypes::from_string(current_expr.expr_type));
+        }
+        "Eq" | "Neq" | "Lt" | "Gt" | "LtEq" | "GtEq" | "Add" | "Sub" | "Mul" | "Div" | "LogAnd"
+        | "LogOr" => {
+            let operation_table = operation_table::load_operation_table();
+
+            let left = type_check_expr(*current_expr.left.unwrap(), symbol_tables.clone());
+            let right = type_check_expr(*current_expr.right.unwrap(), symbol_tables.clone());
+
+            match (left.clone(), right.clone()) {
+                (Ok(l), Ok(r)) => {
+                    let l_string = l.stringify();
+                    let r_string = r.stringify();
+
+                    let result_type = operation_table.get(&(
+                        current_expr.expr_type.as_str(),
+                        l_string.as_str(),
+                        r_string.as_str(),
+                    ));
+
+                    match result_type {
+                        Some(r) => return Ok(SymbolTypes::from_string(String::from(*r))),
+                        None => {
+                            return Err(format!(
+                                "cannot {} a {} and a {}",
+                                current_expr.expr_type.as_str(),
+                                l_string,
+                                r_string,
+                            ))
+                        }
+                    }
+                }
+                _ => return Err(format!("{:?} - {:?}", left, right)),
+            }
+        }
+        "LogNot" => {
+            let val = type_check_expr(*current_expr.right.unwrap(), symbol_tables.clone());
+
+            if val.clone().unwrap() == SymbolTypes::Bool {
+                return Ok(SymbolTypes::Bool);
+            }
+            return Err(format!("Cannot not a '{:?}'", val)); //TODO: Yet another temp error :3
+        }
+        "Group" => {
+            return type_check_expr(*current_expr.right.unwrap(), symbol_tables.clone());
+        }
+        _ => {
+            //TODO: Turn into error once error handling complete
+            return Err(String::from("Type_check Error"));
+        }
     }
 }
 
@@ -51,11 +167,32 @@ fn enter_local_scope(current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
 
 pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
     loop {
-        println!("{}", current_stmt.stmt_type);
+        println!("\n{}", current_stmt.stmt_type);
 
         match current_stmt.stmt_type.as_str() {
             "IfStmt" => {
                 // check condition
+                let expr_type =
+                    type_check_expr(current_stmt.expr.clone().unwrap(), scope_stack.clone());
+                match expr_type {
+                    Ok(t) => {
+                        if t != SymbolTypes::Bool {
+                            //TODO: Make this error when error handling implemented :D
+                            println!("Expected type 'Bool', found type '{}'", t.stringify());
+
+                            if current_stmt.next.is_some() {
+                                current_stmt = *current_stmt.next.unwrap();
+                            } else {
+                                return;
+                            }
+                            continue;
+                        }
+                        println!("Yay type is correct");
+                    }
+                    Err(e) => {
+                        println!("{}", e);
+                    }
+                }
 
                 // enter body of if stmt (if exists)
                 if current_stmt.body.is_some() {
@@ -72,6 +209,29 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
             }
             "ElifStmt" | "ElseStmt" => {
                 // check condition (elif)
+                if current_stmt.expr.is_some() {
+                    let expr_type =
+                        type_check_expr(current_stmt.expr.clone().unwrap(), scope_stack.clone());
+                    match expr_type {
+                        Ok(t) => {
+                            if t != SymbolTypes::Bool {
+                                //TODO: Make this error when error handling implemented :D
+                                println!("Expected type 'Bool', found type '{}'", t.stringify());
+
+                                if current_stmt.next.is_some() {
+                                    current_stmt = *current_stmt.next.unwrap();
+                                } else {
+                                    return;
+                                }
+                                continue;
+                            }
+                            println!("Yay type is correct");
+                        }
+                        Err(e) => {
+                            println!("{}", e);
+                        }
+                    }
+                }
                 // enter body (if exists)
                 if current_stmt.body.is_some() {
                     enter_local_scope(*current_stmt.body.unwrap(), scope_stack.clone());
@@ -79,13 +239,33 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
             }
             "WhileStmt" => {
                 // check condition
+                let expr_type =
+                    type_check_expr(current_stmt.expr.clone().unwrap(), scope_stack.clone());
+                match expr_type {
+                    Ok(t) => {
+                        if t != SymbolTypes::Bool {
+                            //TODO: Make this error when error handling implemented :D
+                            println!("Expected type 'Bool', found type '{}'", t.stringify());
+
+                            if current_stmt.next.is_some() {
+                                current_stmt = *current_stmt.next.unwrap();
+                            } else {
+                                return;
+                            }
+                            continue;
+                        }
+                        println!("Yay type is correct");
+                    }
+                    Err(e) => {
+                        println!("{}", e);
+                    }
+                }
                 // enter body (if exists)
                 if current_stmt.body.is_some() {
                     enter_local_scope(*current_stmt.body.unwrap(), scope_stack.clone());
                 }
             }
             "DeclStmt" => {
-                // check if type of ID matches expression
                 // stop if variable exists in scope
                 if scope_stack
                     .last()
@@ -137,8 +317,40 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                         current_stmt.decl_node.clone().unwrap().id.unwrap()
                     );
                 }
-
                 // check if type of ID matches expression
+                // TODO: This code sucks make it better please :3
+                match type_check_expr(
+                    current_stmt.decl_node.clone().unwrap().value.unwrap(),
+                    scope_stack.clone(),
+                ) {
+                    Ok(t) => {
+                        let symbol_type = search_scope_stack(
+                            current_stmt.decl_node.clone().unwrap().id.unwrap(),
+                            scope_stack.clone(),
+                        );
+
+                        if symbol_type.is_some() {
+                            if symbol_type.clone().unwrap() != t {
+                                println!(
+                                    "Expected type '{}', found type '{}'",
+                                    symbol_type.unwrap().stringify(),
+                                    t.stringify()
+                                );
+
+                                if current_stmt.next.is_some() {
+                                    current_stmt = *current_stmt.next.unwrap();
+                                } else {
+                                    return;
+                                }
+                                continue;
+                            }
+                            println!("Yay type is correct");
+                        }
+                    }
+                    Err(_) => {
+                        println!("D:");
+                    } //TODO: IDK maybe  make this an error :3
+                }
             }
             _ => {} // TODO: Count as error, once error handling
         }

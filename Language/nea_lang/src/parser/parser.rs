@@ -77,7 +77,7 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
     while !stack.is_empty() {
         let (next_s, next_i) = (stack.pop().unwrap(), tokens[token_index].clone());
 
-        if next_s.chars().next().unwrap() == '|' {
+        if next_s.chars().next().unwrap() == '|' && next_s.chars().nth(1).unwrap() != '|' {
             // collection node found
             let parts = next_s[1..next_s.len() - 1]
                 .split(',')

@@ -65,6 +65,5 @@ fn main() {
             }
         }
     }
-
-    // parser::parse_table::generate_parse_table();
+    // semantics::operation_table::parse_table();
 }

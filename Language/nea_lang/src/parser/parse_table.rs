@@ -1,31 +1,32 @@
 use std::collections::HashMap;
 use std::fs;
 
-#[allow(dead_code)]
-pub fn generate_parse_table() {
-    let parse_table_data = fs::read_to_string(
-        "/home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/res/tables/parse_table",
-    )
-    .expect("AHHHHHHHH but parsing :O");
-    let rows = parse_table_data.split(";;").collect::<Vec<&str>>();
-
-    for row in rows {
-        let lines = row.split('\n').collect::<Vec<&str>>();
-        let left_nt = format!("<{}>", lines[0].split('=').next().unwrap());
-
-        for line_i in 1..lines.len() - 2 {
-            let parts = lines[line_i].split("->").collect::<Vec<&str>>();
-            let input_expected = parts[0].trim();
-
-            let mut output = parts[1].split(',').collect::<Vec<&str>>();
-            output.retain(|x| x != &"");
-            let coll_token = format!("|{},{}|", output.len(), left_nt);
-
-            output.push(coll_token.as_str());
-            println!("(({:?}, {:?}), vec!{:?}),", left_nt, input_expected, output);
-        }
-    }
-}
+// used to generate parse table hash map
+// #[allow(dead_code)]
+// pub fn generate_parse_table() {
+//     let parse_table_data = fs::read_to_string(
+//         "/home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/res/tables/parse_table",
+//     )
+//     .expect("AHHHHHHHH but parsing :O");
+//     let rows = parse_table_data.split(";;").collect::<Vec<&str>>();
+//
+//     for row in rows {
+//         let lines = row.split('\n').collect::<Vec<&str>>();
+//         let left_nt = format!("<{}>", lines[0].split('=').next().unwrap());
+//
+//         for line_i in 1..lines.len() - 2 {
+//             let parts = lines[line_i].split("->").collect::<Vec<&str>>();
+//             let input_expected = parts[0].trim();
+//
+//             let mut output = parts[1].split(',').collect::<Vec<&str>>();
+//             output.retain(|x| x != &"");
+//             let coll_token = format!("|{},{}|", output.len(), left_nt);
+//
+//             output.push(coll_token.as_str());
+//             println!("(({:?}, {:?}), vec!{:?}),", left_nt, input_expected, output);
+//         }
+//     }
+// }
 
 pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static str>> {
     // <_> = non-terminal
@@ -96,7 +97,7 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<OE>", "("), vec!["<AE>", "<OEP>"]),
         (
             ("<OEP>", "||"),
-            vec!["||", "<AE>", "<OEP>", "|Expr-LogOr,3,31_|"],
+            vec!["||", "<AE>", "|Expr-LogOr,3,31_|", "<OEP>"],
         ),
         (("<OEP>", ";"), vec![]),
         (("<OEP>", ")"), vec![]),
@@ -111,7 +112,7 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<AE>", "("), vec!["<EE>", "<AEP>"]),
         (
             ("<AEP>", "&&"),
-            vec!["&&", "<EE>", "<AEP>", "|Expr-LogAnd,3,31_|"],
+            vec!["&&", "<EE>", "|Expr-LogAnd,3,31_|", "<AEP>"],
         ),
         (("<AEP>", "||"), vec![]),
         (("<AEP>", ";"), vec![]),
@@ -127,11 +128,11 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<EE>", "("), vec!["<IE>", "<EEP>"]),
         (
             ("<EEP>", "=="),
-            vec!["==", "<IE>", "<EEP>", "|Expr-Eq,3,31_|"],
+            vec!["==", "<IE>", "|Expr-Eq,3,31_|", "<EEP>"],
         ),
         (
             ("<EEP>", "!="),
-            vec!["!=", "<IE>", "<EEP>", "|Expr-Neq,3,31_|"],
+            vec!["!=", "<IE>", "|Expr-Neq,3,31_|", "<EEP>"],
         ),
         (("<EEP>", "&&"), vec![]),
         (("<EEP>", "||"), vec![]),
@@ -148,19 +149,19 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<IE>", "("), vec!["<ADE>", "<IEP>"]),
         (
             ("<IEP>", ">"),
-            vec![">", "<ADE>", "<IEP>", "|Expr-Gt,3,31_|"],
+            vec![">", "<ADE>", "|Expr-Gt,3,31_|", "<IEP>"],
         ),
         (
             ("<IEP>", "<"),
-            vec!["<", "<ADE>", "<IEP>", "|Expr-Lt,3,31_|"],
+            vec!["<", "<ADE>", "|Expr-Lt,3,31_|", "<IEP>"],
         ),
         (
             ("<IEP>", ">="),
-            vec![">=", "<ADE>", "<IEP>", "|Expr-GtEq,3,31_|"],
+            vec![">=", "<ADE>", "|Expr-GtEq,3,31_|", "<IEP>"],
         ),
         (
             ("<IEP>", "<="),
-            vec!["<=", "<ADE>", "<IEP>", "|Expr-LtEq,3,31_|"],
+            vec!["<=", "<ADE>", "|Expr-LtEq,3,31_|", "<IEP>"],
         ),
         (("<IEP>", "=="), vec![]),
         (("<IEP>", "!="), vec![]),
@@ -179,11 +180,11 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<ADE>", "("), vec!["<ME>", "<ADEP>"]),
         (
             ("<ADEP>", "+"),
-            vec!["+", "<ME>", "<ADEP>", "|Expr-Add,3,31_|"],
+            vec!["+", "<ME>", "|Expr-Add,3,31_|", "<ADEP>"],
         ),
         (
             ("<ADEP>", "-"),
-            vec!["-", "<ME>", "<ADEP>", "|Expr-Sub,3,31_|"],
+            vec!["-", "<ME>", "|Expr-Sub,3,31_|", "<ADEP>"],
         ),
         (("<ADEP>", ">"), vec![]),
         (("<ADEP>", "<"), vec![]),
@@ -206,11 +207,11 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<ME>", "("), vec!["<UE>", "<MEP>"]),
         (
             ("<MEP>", "*"),
-            vec!["*", "<UE>", "<MEP>", "|Expr-Mul,3,31_|"],
+            vec!["*", "<UE>", "|Expr-Mul,3,31_|", "<MEP>"],
         ),
         (
             ("<MEP>", "/"),
-            vec!["/", "<UE>", "<MEP>", "|Expr-Div,3,31_|"],
+            vec!["/", "<UE>", "|Expr-Div,3,31_|", "<MEP>"],
         ),
         (("<MEP>", "+"), vec![]),
         (("<MEP>", "-"), vec![]),

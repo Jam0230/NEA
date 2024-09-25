@@ -1,0 +1,621 @@
+desc: --time-unit=B
+cmd: ./target/release/nea_lang ./res/tests/hello_world.txt
+time_unit: B
+#-----------
+snapshot=0
+#-----------
+time=0
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=1
+#-----------
+time=1328728
+mem_heap_B=332742
+mem_heap_extra_B=1218
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=2
+#-----------
+time=3295352
+mem_heap_B=13750
+mem_heap_extra_B=1330
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=3
+#-----------
+time=4615784
+mem_heap_B=12628
+mem_heap_extra_B=1300
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=4
+#-----------
+time=6541728
+mem_heap_B=332756
+mem_heap_extra_B=1308
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=5
+#-----------
+time=9138824
+mem_heap_B=12849
+mem_heap_extra_B=1383
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=6
+#-----------
+time=11140440
+mem_heap_B=332998
+mem_heap_extra_B=1458
+mem_stacks_B=0
+heap_tree=detailed
+n3: 332998 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 320000 0x18B4BF: <T as alloc::vec::spec_from_elem::SpecFromElem>::from_elem (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 320000 0x18B791: regex_automata::nfa::thompson::map::Utf8BoundedMap::clear (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 320000 0x1A4237: regex_automata::nfa::thompson::compiler::Utf8Compiler::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 320000 0x1A01FD: regex_automata::nfa::thompson::compiler::Compiler::c (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 320000 0x1A303F: regex_automata::nfa::thompson::compiler::Compiler::c_cap (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 320000 0x19D88A: <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::next (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 320000 0x19E9BB: regex_automata::nfa::thompson::compiler::Compiler::compile (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 320000 0x17A886: regex_automata::meta::strategy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n1: 320000 0x1BC2C4: regex_automata::meta::regex::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+          n1: 320000 0x1771D6: regex::builders::Builder::build_one_string (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+           n1: 320000 0x1779FD: regex::regex::string::Regex::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+            n1: 320000 0x163FFC: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+             n1: 320000 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+              n1: 320000 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+               n1: 320000 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+                n1: 320000 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+                 n0: 320000 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+ n0: 8758 in 180 places, all below massif's threshold (1.00%)
+ n1: 4240 0x14E816: hashbrown::raw::RawTable<T,A>::reserve_rehash (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 4240 0x174DBC: <hashbrown::map::HashMap<K,V,S,A> as core::iter::traits::collect::Extend<(K,V)>>::extend (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 4240 0x172EDD: nea_lang::scanner::transition_table::load_trans_table (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 4240 0x163A8D: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 4240 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 4240 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 4240 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 4240 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n0: 4240 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+#-----------
+snapshot=7
+#-----------
+time=13417912
+mem_heap_B=13079
+mem_heap_extra_B=1313
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=8
+#-----------
+time=14802504
+mem_heap_B=14021
+mem_heap_extra_B=1587
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=9
+#-----------
+time=16764728
+mem_heap_B=12940
+mem_heap_extra_B=1548
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=10
+#-----------
+time=19772304
+mem_heap_B=15358
+mem_heap_extra_B=1602
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=11
+#-----------
+time=21805720
+mem_heap_B=333461
+mem_heap_extra_B=1667
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=12
+#-----------
+time=23774976
+mem_heap_B=333463
+mem_heap_extra_B=1737
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=13
+#-----------
+time=25384016
+mem_heap_B=333463
+mem_heap_extra_B=1737
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=14
+#-----------
+time=27830664
+mem_heap_B=13890
+mem_heap_extra_B=1638
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=15
+#-----------
+time=30701096
+mem_heap_B=333513
+mem_heap_extra_B=1855
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=16
+#-----------
+time=32723208
+mem_heap_B=15292
+mem_heap_extra_B=1996
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=17
+#-----------
+time=35367568
+mem_heap_B=15306
+mem_heap_extra_B=2022
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=18
+#-----------
+time=37734720
+mem_heap_B=334328
+mem_heap_extra_B=2056
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=19
+#-----------
+time=39341968
+mem_heap_B=334328
+mem_heap_extra_B=2056
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=20
+#-----------
+time=42093208
+mem_heap_B=334359
+mem_heap_extra_B=2113
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=21
+#-----------
+time=44116592
+mem_heap_B=15362
+mem_heap_extra_B=2206
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=22
+#-----------
+time=46212456
+mem_heap_B=334384
+mem_heap_extra_B=2216
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=23
+#-----------
+time=49379088
+mem_heap_B=18641
+mem_heap_extra_B=2927
+mem_stacks_B=0
+heap_tree=detailed
+n15: 18641 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n0: 4912 in 168 places, all below massif's threshold (1.00%)
+ n1: 4240 0x14E816: hashbrown::raw::RawTable<T,A>::reserve_rehash (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 4240 0x174DBC: <hashbrown::map::HashMap<K,V,S,A> as core::iter::traits::collect::Extend<(K,V)>>::extend (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 4240 0x172EDD: nea_lang::scanner::transition_table::load_trans_table (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 4240 0x163A8D: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 4240 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 4240 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 4240 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 4240 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n0: 4240 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+ n1: 1944 0x172F21: nea_lang::scanner::transition_table::load_trans_table (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 1944 0x163A8D: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 1944 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 1944 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 1944 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 1944 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n0: 1944 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+ n1: 1536 0x1621B1: alloc::raw_vec::finish_grow (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n2: 1536 0x16235A: alloc::raw_vec::RawVec<T,A>::grow_one (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 1536 0x164763: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 1536 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 1536 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 1536 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 1536 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n0: 1536 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 1536 0x1EB838: <T as alloc::vec::spec_from_elem::SpecFromElem>::from_elem (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 1536 0x1ED73E: aho_corasick::packed::rabinkarp::RabinKarp::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 1536 0x1E608B: aho_corasick::packed::api::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 1536 0x1AE03B: regex_automata::util::prefilter::teddy::Teddy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 1536 0x1CA8AF: regex_automata::util::prefilter::Choice::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 1536 0x17C362: regex_automata::meta::strategy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 1536 0x1BC2C4: regex_automata::meta::regex::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 1536 0x1771D6: regex::builders::Builder::build_one_string (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n1: 1536 0x1779FD: regex::regex::string::Regex::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+          n1: 1536 0x163FFC: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+           n1: 1536 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+            n1: 1536 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+             n1: 1536 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+              n1: 1536 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+               n0: 1536 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+ n3: 976 0x203DBD: alloc::raw_vec::finish_grow (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 640 0x203FCC: alloc::raw_vec::RawVec<T,A>::grow_one (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 640 0x1ED8F0: aho_corasick::packed::rabinkarp::RabinKarp::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 640 0x1E608B: aho_corasick::packed::api::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 640 0x1AE03B: regex_automata::util::prefilter::teddy::Teddy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 640 0x1CA8AF: regex_automata::util::prefilter::Choice::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 640 0x17C362: regex_automata::meta::strategy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 640 0x1BC2C4: regex_automata::meta::regex::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n1: 640 0x1771D6: regex::builders::Builder::build_one_string (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+          n1: 640 0x1779FD: regex::regex::string::Regex::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+           n1: 640 0x163FFC: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+            n1: 640 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+             n1: 640 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+              n1: 640 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+               n1: 640 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+                n0: 640 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n2: 256 0x203E63: alloc::raw_vec::RawVec<T,A>::grow_one (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 256 0x1E86D8: aho_corasick::packed::teddy::generic::Teddy<_>::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n0: 256 in 2 places, all below massif's threshold (1.00%)
+   n0: 0 in 3 places, all below massif's threshold (1.00%)
+  n0: 80 in 2 places, all below massif's threshold (1.00%)
+ n1: 624 0x16FFE2: nea_lang::scanner::transition_table::load_trans_table (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 624 0x163A8D: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 624 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 624 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 624 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 624 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n0: 624 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+ n2: 576 0x203D91: alloc::raw_vec::finish_grow (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 576 0x20408C: alloc::raw_vec::RawVec<T,A>::grow_one (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n2: 576 0x1D4BDD: aho_corasick::nfa::noncontiguous::NFA::init_full_state (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 576 0x1D667F: aho_corasick::nfa::noncontiguous::Compiler::init_unanchored_start_state (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 576 0x1AAF37: aho_corasick::nfa::noncontiguous::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 576 0x1AE21B: regex_automata::util::prefilter::teddy::Teddy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 576 0x1CA8AF: regex_automata::util::prefilter::Choice::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 576 0x17C362: regex_automata::meta::strategy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n1: 576 0x1BC2C4: regex_automata::meta::regex::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+          n1: 576 0x1771D6: regex::builders::Builder::build_one_string (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+           n1: 576 0x1779FD: regex::regex::string::Regex::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+            n1: 576 0x163FFC: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+             n1: 576 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+              n1: 576 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+               n1: 576 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+                n1: 576 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+                 n0: 576 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n0: 0 in 1 place, below massif's threshold (1.00%)
+  n0: 0 in 5 places, all below massif's threshold (1.00%)
+ n2: 576 0x25A440: __rdl_alloc (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 576 0x1F3EB1: aho_corasick::packed::teddy::builder::x86_64::SlimAVX2<1_usize>::new_unchecked (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 576 0x1EDEB5: aho_corasick::packed::teddy::builder::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 576 0x1E60CC: aho_corasick::packed::api::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 576 0x1AE03B: regex_automata::util::prefilter::teddy::Teddy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 576 0x1CA8AF: regex_automata::util::prefilter::Choice::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 576 0x17C362: regex_automata::meta::strategy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 576 0x1BC2C4: regex_automata::meta::regex::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n1: 576 0x1771D6: regex::builders::Builder::build_one_string (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+          n1: 576 0x1779FD: regex::regex::string::Regex::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+           n1: 576 0x163FFC: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+            n1: 576 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+             n1: 576 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+              n1: 576 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+               n1: 576 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+                n0: 576 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n0: 0 in 1 place, below massif's threshold (1.00%)
+ n1: 353 0x2757CF: alloc::raw_vec::finish_grow (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n0: 353 in 3 places, all below massif's threshold (1.00%)
+ n1: 336 0x1D0A6D: alloc::raw_vec::finish_grow (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n0: 336 in 12 places, all below massif's threshold (1.00%)
+ n1: 320 0x2211FB: <alloc::vec::Vec<T,A> as core::clone::Clone>::clone (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 320 0x2257A5: regex_syntax::hir::literal::Seq::optimize_by_preference (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 320 0x1CAC87: regex_automata::util::prefilter::prefixes (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 320 0x17A45C: regex_automata::meta::strategy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 320 0x1BC2C4: regex_automata::meta::regex::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 320 0x1771D6: regex::builders::Builder::build_one_string (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 320 0x1779FD: regex::regex::string::Regex::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 320 0x163FFC: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n1: 320 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+          n1: 320 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+           n1: 320 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+            n1: 320 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+             n0: 320 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+ n1: 256 0x1D5216: aho_corasick::nfa::noncontiguous::Compiler::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 256 0x1AAD3E: aho_corasick::nfa::noncontiguous::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 256 0x1AE21B: regex_automata::util::prefilter::teddy::Teddy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 256 0x1CA8AF: regex_automata::util::prefilter::Choice::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 256 0x17C362: regex_automata::meta::strategy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 256 0x1BC2C4: regex_automata::meta::regex::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 256 0x1771D6: regex::builders::Builder::build_one_string (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 256 0x1779FD: regex::regex::string::Regex::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n1: 256 0x163FFC: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+          n1: 256 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+           n1: 256 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+            n1: 256 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+             n1: 256 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+              n0: 256 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+ n1: 240 0x1EBE53: <alloc::vec::Vec<T,A> as core::clone::Clone>::clone (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 240 0x1E5EC0: aho_corasick::packed::api::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 240 0x1AE03B: regex_automata::util::prefilter::teddy::Teddy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 240 0x1CA8AF: regex_automata::util::prefilter::Choice::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 240 0x17C362: regex_automata::meta::strategy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 240 0x1BC2C4: regex_automata::meta::regex::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 240 0x1771D6: regex::builders::Builder::build_one_string (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 240 0x1779FD: regex::regex::string::Regex::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n1: 240 0x163FFC: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+          n1: 240 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+           n1: 240 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+            n1: 240 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+             n1: 240 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+              n0: 240 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+ n1: 216 0x20E8F4: regex_syntax::ast::parse::ParserI<P>::parse_with_comments (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 216 0x20A24B: regex_syntax::ast::parse::Parser::parse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 216 0x1BBA1A: regex_automata::meta::regex::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 216 0x1771D6: regex::builders::Builder::build_one_string (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 216 0x1779FD: regex::regex::string::Regex::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 216 0x163FFC: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 216 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 216 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n1: 216 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+          n1: 216 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+           n0: 216 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+#-----------
+snapshot=24
+#-----------
+time=51292944
+mem_heap_B=15414
+mem_heap_extra_B=2330
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=25
+#-----------
+time=52709032
+mem_heap_B=15422
+mem_heap_extra_B=2330
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=26
+#-----------
+time=55511344
+mem_heap_B=334428
+mem_heap_extra_B=2276
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=27
+#-----------
+time=57443008
+mem_heap_B=15424
+mem_heap_extra_B=2320
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=28
+#-----------
+time=59470336
+mem_heap_B=20421
+mem_heap_extra_B=3051
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=29
+#-----------
+time=61708424
+mem_heap_B=334478
+mem_heap_extra_B=2410
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=30
+#-----------
+time=64541656
+mem_heap_B=334478
+mem_heap_extra_B=2426
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=31
+#-----------
+time=67173368
+mem_heap_B=338390
+mem_heap_extra_B=2914
+mem_stacks_B=0
+heap_tree=peak
+n3: 338390 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 320000 0x18B4BF: <T as alloc::vec::spec_from_elem::SpecFromElem>::from_elem (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 320000 0x18B791: regex_automata::nfa::thompson::map::Utf8BoundedMap::clear (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 320000 0x1A4237: regex_automata::nfa::thompson::compiler::Utf8Compiler::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 320000 0x1A01FD: regex_automata::nfa::thompson::compiler::Compiler::c (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 320000 0x1A303F: regex_automata::nfa::thompson::compiler::Compiler::c_cap (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 320000 0x19D88A: <core::iter::adapters::map::Map<I,F> as core::iter::traits::iterator::Iterator>::next (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 320000 0x19E9BB: regex_automata::nfa::thompson::compiler::Compiler::compile (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 320000 0x17A886: regex_automata::meta::strategy::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n1: 320000 0x1BC2C4: regex_automata::meta::regex::Builder::build (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+          n1: 320000 0x1771D6: regex::builders::Builder::build_one_string (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+           n1: 320000 0x1779FD: regex::regex::string::Regex::new (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+            n1: 320000 0x163FFC: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+             n1: 320000 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+              n1: 320000 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+               n1: 320000 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+                n1: 320000 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+                 n0: 320000 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+ n0: 14150 in 180 places, all below massif's threshold (1.00%)
+ n1: 4240 0x14E816: hashbrown::raw::RawTable<T,A>::reserve_rehash (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+  n1: 4240 0x174DBC: <hashbrown::map::HashMap<K,V,S,A> as core::iter::traits::collect::Extend<(K,V)>>::extend (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+   n1: 4240 0x172EDD: nea_lang::scanner::transition_table::load_trans_table (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+    n1: 4240 0x163A8D: nea_lang::scanner::scanner::lexical_analyse (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+     n1: 4240 0x175FB2: nea_lang::main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+      n1: 4240 0x16F502: std::sys_common::backtrace::__rust_begin_short_backtrace (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+       n1: 4240 0x16F518: std::rt::lang_start::{{closure}} (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+        n1: 4240 0x2546CC: std::rt::lang_start_internal (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+         n0: 4240 0x1767C4: main (in /home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/target/release/nea_lang)
+#-----------
+snapshot=32
+#-----------
+time=69700752
+mem_heap_B=336047
+mem_heap_extra_B=2513
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=33
+#-----------
+time=72567640
+mem_heap_B=17062
+mem_heap_extra_B=2658
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=34
+#-----------
+time=75642904
+mem_heap_B=21407
+mem_heap_extra_B=3753
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=35
+#-----------
+time=78883976
+mem_heap_B=17106
+mem_heap_extra_B=2726
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=36
+#-----------
+time=81008200
+mem_heap_B=17106
+mem_heap_extra_B=2726
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=37
+#-----------
+time=82424200
+mem_heap_B=17106
+mem_heap_extra_B=2726
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=38
+#-----------
+time=85001296
+mem_heap_B=17111
+mem_heap_extra_B=2761
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=39
+#-----------
+time=87126296
+mem_heap_B=17119
+mem_heap_extra_B=2777
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=40
+#-----------
+time=90166296
+mem_heap_B=17134
+mem_heap_extra_B=2826
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=41
+#-----------
+time=92773216
+mem_heap_B=17136
+mem_heap_extra_B=2864
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=42
+#-----------
+time=95207504
+mem_heap_B=336167
+mem_heap_extra_B=2905
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=43
+#-----------
+time=98226112
+mem_heap_B=17181
+mem_heap_extra_B=2979
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=44
+#-----------
+time=99847216
+mem_heap_B=336198
+mem_heap_extra_B=2938
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=45
+#-----------
+time=101528888
+mem_heap_B=336219
+mem_heap_extra_B=3005
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=46
+#-----------
+time=104361912
+mem_heap_B=336219
+mem_heap_extra_B=3005
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=47
+#-----------
+time=107384848
+mem_heap_B=336211
+mem_heap_extra_B=2973
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=48
+#-----------
+time=109963424
+mem_heap_B=336224
+mem_heap_extra_B=3024
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=49
+#-----------
+time=111640240
+mem_heap_B=37421
+mem_heap_extra_B=4947
+mem_stacks_B=0
+heap_tree=empty
