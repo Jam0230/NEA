@@ -137,7 +137,7 @@ fn type_check_expr(
             }
         }
         "LogNot" => {
-            let val = type_check_expr(*current_expr.right.unwrap(), symbol_tables.clone());
+            let val = type_check_expr(*current_expr.left.unwrap(), symbol_tables.clone());
 
             if val.clone().unwrap() == SymbolTypes::Bool {
                 return Ok(SymbolTypes::Bool);
@@ -145,7 +145,7 @@ fn type_check_expr(
             return Err(format!("Cannot not a '{:?}'", val)); //TODO: Yet another temp error :3
         }
         "Group" => {
-            return type_check_expr(*current_expr.right.unwrap(), symbol_tables.clone());
+            return type_check_expr(*current_expr.left.unwrap(), symbol_tables.clone());
         }
         _ => {
             //TODO: Turn into error once error handling complete
@@ -154,18 +154,27 @@ fn type_check_expr(
     }
 }
 
-fn enter_local_scope(current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
-    println!("entering scope :3");
+fn enter_local_scope(
+    current_stmt: Stmt,
+    mut scope_stack: Vec<SymbolTable>,
+    mut errors: i32,
+) -> i32 {
+    println!("entering scope");
 
     scope_stack.push(SymbolTable {
         symbols: Vec::new(),
         level: ScopeLevels::Local,
     });
 
-    traverse_ast(current_stmt, scope_stack);
+    errors = traverse_ast(current_stmt, scope_stack, errors);
+    return errors;
 }
 
-pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
+pub fn traverse_ast(
+    mut current_stmt: Stmt,
+    mut scope_stack: Vec<SymbolTable>,
+    mut errors: i32,
+) -> i32 {
     loop {
         println!("\n{}", current_stmt.stmt_type);
 
@@ -179,11 +188,12 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                         if t != SymbolTypes::Bool {
                             //TODO: Make this error when error handling implemented :D
                             println!("Expected type 'Bool', found type '{}'", t.stringify());
+                            errors += 1;
 
                             if current_stmt.next.is_some() {
                                 current_stmt = *current_stmt.next.unwrap();
                             } else {
-                                return;
+                                return errors;
                             }
                             continue;
                         }
@@ -191,20 +201,30 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                     }
                     Err(e) => {
                         println!("{}", e);
+                        errors += 1;
                     }
                 }
 
                 // enter body of if stmt (if exists)
                 if current_stmt.body.is_some() {
-                    enter_local_scope(*current_stmt.body.unwrap(), scope_stack.clone());
+                    errors =
+                        enter_local_scope(*current_stmt.body.unwrap(), scope_stack.clone(), errors);
                 }
                 // enter elif stmt branch (if exists)
                 if current_stmt.elif_stmt.is_some() {
-                    traverse_ast(*current_stmt.elif_stmt.unwrap(), scope_stack.clone());
+                    errors = traverse_ast(
+                        *current_stmt.elif_stmt.unwrap(),
+                        scope_stack.clone(),
+                        errors,
+                    );
                 }
                 // enter else body (if exists)
                 if current_stmt.else_stmt.is_some() {
-                    traverse_ast(*current_stmt.else_stmt.unwrap(), scope_stack.clone());
+                    errors = traverse_ast(
+                        *current_stmt.else_stmt.unwrap(),
+                        scope_stack.clone(),
+                        errors,
+                    );
                 }
             }
             "ElifStmt" | "ElseStmt" => {
@@ -217,11 +237,12 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                             if t != SymbolTypes::Bool {
                                 //TODO: Make this error when error handling implemented :D
                                 println!("Expected type 'Bool', found type '{}'", t.stringify());
+                                errors += 1;
 
                                 if current_stmt.next.is_some() {
                                     current_stmt = *current_stmt.next.unwrap();
                                 } else {
-                                    return;
+                                    return errors;
                                 }
                                 continue;
                             }
@@ -229,12 +250,14 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                         }
                         Err(e) => {
                             println!("{}", e);
+                            errors += 1
                         }
                     }
                 }
                 // enter body (if exists)
                 if current_stmt.body.is_some() {
-                    enter_local_scope(*current_stmt.body.unwrap(), scope_stack.clone());
+                    errors =
+                        enter_local_scope(*current_stmt.body.unwrap(), scope_stack.clone(), errors);
                 }
             }
             "WhileStmt" => {
@@ -246,11 +269,12 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                         if t != SymbolTypes::Bool {
                             //TODO: Make this error when error handling implemented :D
                             println!("Expected type 'Bool', found type '{}'", t.stringify());
+                            errors += 1;
 
                             if current_stmt.next.is_some() {
                                 current_stmt = *current_stmt.next.unwrap();
                             } else {
-                                return;
+                                return errors;
                             }
                             continue;
                         }
@@ -258,11 +282,13 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                     }
                     Err(e) => {
                         println!("{}", e);
+                        errors += 1
                     }
                 }
-                // enter body (if exists)
+                // enter body (if exists)You need to complete the student progress document attached to this hoomework prior to your meeting.
                 if current_stmt.body.is_some() {
-                    enter_local_scope(*current_stmt.body.unwrap(), scope_stack.clone());
+                    errors =
+                        enter_local_scope(*current_stmt.body.unwrap(), scope_stack.clone(), errors);
                 }
             }
             "DeclStmt" => {
@@ -277,18 +303,26 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                         "Identifier '{}' already exists in current scope!",
                         current_stmt.decl_node.clone().unwrap().id.unwrap()
                     ); //TODO: temperary error, implement once error handling complete
+                    errors += 1;
 
                     if current_stmt.next.is_some() {
                         current_stmt = *current_stmt.next.unwrap();
                         continue;
                     } else {
-                        return;
+                        return errors;
                     }
                 }
                 // add symbol of symbol table
                 scope_stack.last_mut().unwrap().symbols.push(Symbol {
                     name: current_stmt.decl_node.clone().unwrap().id.unwrap(),
-                    s_type: match current_stmt.decl_node.unwrap().var_type.unwrap().as_str() {
+                    s_type: match current_stmt
+                        .decl_node
+                        .clone()
+                        .unwrap()
+                        .var_type
+                        .unwrap()
+                        .as_str()
+                    {
                         "int" => SymbolTypes::Int,
                         "float" => SymbolTypes::Float,
                         "str" => SymbolTypes::Str,
@@ -297,9 +331,46 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                         _ => SymbolTypes::Int, // shouldnt happen but rust insists
                     },
                 });
+                // check if type of ID matches expression
+                // TODO: This code sucks make it better please :3
+                match type_check_expr(
+                    current_stmt.decl_node.clone().unwrap().value.unwrap(),
+                    scope_stack.clone(),
+                ) {
+                    Ok(t) => {
+                        let symbol_type = search_scope_stack(
+                            current_stmt.decl_node.unwrap().id.unwrap(),
+                            scope_stack.clone(),
+                        );
+
+                        if symbol_type.is_some() {
+                            if symbol_type.clone().unwrap() != t {
+                                println!(
+                                    "Expected type '{}', found type '{}'",
+                                    symbol_type.unwrap().stringify(),
+                                    t.stringify()
+                                );
+                                errors += 1;
+
+                                if current_stmt.next.is_some() {
+                                    current_stmt = *current_stmt.next.unwrap();
+                                } else {
+                                    return errors;
+                                }
+                                continue;
+                            }
+                            println!("Yay type is correct");
+                        }
+                        println!("")
+                    }
+                    Err(_) => {
+                        println!("D:");
+                        errors += 1;
+                    } //TODO: temp error 2: electric boogaloo
+                }
             }
             "AssignStmt" => {
-                // stop if variable doesnt exist in scope
+                // stop if variable doesnt exist in scop:we
 
                 let mut in_scope = false;
                 for symbol_table in scope_stack.iter().rev() {
@@ -316,9 +387,10 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                         "Identifer '{}' does not exist in current scope!",
                         current_stmt.decl_node.clone().unwrap().id.unwrap()
                     );
+                    errors += 1;
                 }
                 // check if type of ID matches expression
-                // TODO: This code sucks make it better please :3
+                // TODO: This code sucks still make it better please :3
                 match type_check_expr(
                     current_stmt.decl_node.clone().unwrap().value.unwrap(),
                     scope_stack.clone(),
@@ -340,7 +412,7 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                                 if current_stmt.next.is_some() {
                                     current_stmt = *current_stmt.next.unwrap();
                                 } else {
-                                    return;
+                                    return errors;
                                 }
                                 continue;
                             }
@@ -349,6 +421,7 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
                     }
                     Err(_) => {
                         println!("D:");
+                        errors += 1
                     } //TODO: IDK maybe  make this an error :3
                 }
             }
@@ -360,18 +433,20 @@ pub fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>) {
         if current_stmt.next.is_some() {
             current_stmt = *current_stmt.next.unwrap();
         } else {
-            return;
+            return errors;
         }
     }
 }
 
-pub fn semantic_analyser(ast: Stmt) {
+pub fn semantic_analyser(ast: Stmt) -> i32 {
     let scope_stack: Vec<SymbolTable> = vec![SymbolTable {
         symbols: Vec::new(),
         level: ScopeLevels::Global,
     }];
 
-    traverse_ast(ast, scope_stack);
+    let errors = traverse_ast(ast, scope_stack, 0);
+    println!("Num Errors: {}", errors);
+    errors
 }
 
 // i dont like this code :/

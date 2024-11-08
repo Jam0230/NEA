@@ -1,15 +1,1 @@
-let int a = 0;
-let int b = 100;
-a = 0;
-
-let int c = a;
-
-while c != 10{
-    c += 1;
-    if c / 5 == 0.0{
-
-      }
-    if c / 3 == 0.0{
-
-      }
-}
+let int d = (3*(3*3))*4+(3+003);

@@ -226,7 +226,7 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<MEP>", ";"), vec![]),
         (("<MEP>", ")"), vec![]),
         (("<MEP>", "{"), vec![]),
-        (("<UE>", "!"), vec!["!", "<UE>", "|Expr-LogNot,2,_1_|"]),
+        (("<UE>", "!"), vec!["!", "<UE>", "|Expr-LogNot,2,1__|"]),
         (("<UE>", "[Int]"), vec!["<EA>"]),
         (("<UE>", "[Float]"), vec!["<EA>"]),
         (("<UE>", "[String]"), vec!["<EA>"]),
@@ -240,7 +240,7 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<EA>", "[Char]"), vec!["[Char]", "|Expr-Char,1,__1|"]),
         (("<EA>", "[Bool]"), vec!["[Bool]", "|Expr-Bool,1,__1|"]),
         (("<EA>", "[Id]"), vec!["[Id]", "|Expr-Id,1,__1|"]),
-        (("<EA>", "("), vec!["(", "<OE>", ")", "|Expr-Group,3,_2_|"]),
+        (("<EA>", "("), vec!["(", "<OE>", ")", "|Expr-Group,3,2__|"]),
     ]);
 
     hash

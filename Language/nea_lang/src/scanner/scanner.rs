@@ -10,7 +10,7 @@ pub struct Token {
 
 impl fmt::Display for Token {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[{}: {:?}]", self._type, self.contents)
+        write!(f, " [{}: {:?}] ", self._type, self.contents)
     }
 }
 
@@ -97,8 +97,9 @@ pub fn lexical_analyse(content: String) -> Result<Vec<Token>, String> {
         _type: String::from("EOF"),
         contents: String::from("$"),
     });
-
-    println!("{:?}", tokens);
+    // for token in tokens.clone() {
+    //     println!("{}", token);
+    // }
 
     Ok(tokens)
 }

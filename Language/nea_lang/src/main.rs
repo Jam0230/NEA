@@ -1,6 +1,7 @@
 use std::env;
 use utils::file_input;
 
+mod codegen;
 mod parser;
 mod scanner;
 mod semantics;
@@ -38,12 +39,13 @@ fn main() {
             }
             _ => {
                 if arg.chars().next() != Some('-') {
-                    // file name
+                    // if unknown arg and not last arg
                     if &args[args.len() - 1] != arg {
                         print_error(format!("Unkown argument '{}'!", arg).as_str());
                         return;
                     }
 
+                    // file name
                     match file_input::read_file(arg) {
                         Ok(file_contents) => {
                             let mut tokens =
@@ -51,7 +53,15 @@ fn main() {
 
                             let ast = parser::parser::parse(&mut tokens).expect("");
                             println!("{:#?}", ast);
-                            semantics::semantic_analysis::semantic_analyser(ast);
+                            codegen::codegen::test(ast.clone());
+                            let semantic_errs =
+                                semantics::semantic_analysis::semantic_analyser(ast.clone());
+                            if semantic_errs != 0 {
+                                println!(
+                                    "\n\nOh no, errors found :O\nthat means i have to quit :("
+                                );
+                                return;
+                            }
                         }
                         Err(e) => {
                             println!("{}", e);
@@ -65,5 +75,6 @@ fn main() {
             }
         }
     }
+
     // semantics::operation_table::parse_table();
 }

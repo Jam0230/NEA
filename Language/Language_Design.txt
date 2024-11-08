@@ -133,13 +133,13 @@ Woah new line :O
 
 <Assign_Stmt> = [Id] [Assignment] <Or_Expr>
 
-<If_Stmt> = "if" "(" <Or_Expr> ")" "{" <Statements> "}" <Elif_Stmt_Prime> <Else_Stmt>
+<If_Stmt> = "if" <Or_Expr>  "{" <Statements> "}" <Elif_Stmt_Prime> <Else_Stmt>
 
 
 <Elif_Stmt_Prime> = <Elif_Stmt> <Elif_Stmt_Prime>
         | ε
 
-<Elif_Stmt> = "elif" "(" <Or_Expr> ")" "{" <Statements> "}" 
+<Elif_Stmt> = "elif" <Or_Expr> "{" <Statements> "}" 
 
 <Else_Stmt> = "else" "{" <Statements> "}"
             | ε
@@ -175,15 +175,144 @@ Woah new line :O
 <Multiplication_Expr_Prime> = "*" <Unary_Expr> <Multiplication_Expr_Prime>
                             | "/" <Unary_Expr> <Multiplication_Expr_Prime>
                             | ε
-token
+
 <Unary_Expr> = "!" <Unary_Expr>
              | <Expr_Atom>
 
 <Expr_Atom> = [int]
-let int a = "Hello, World!" * 3;
             | [float]
             | [str]
             | [char]
             | [bool]
             | [Id]
             | "(" <Or_Expr> ")"
+
+
+
+---------------------[ Code Generation ]---------------------
+
+integer Registers to use = [rax, rcx, rdx, rsi, rdi, r8, r9, r10, r11]
+floating point registers in use = [xmm<0-15>]
+
+LOCAL ASSIGNMENT:
+
+<scope start>
+push rbp
+mov rbp, rsp
+# other codex
+mov DWORD [rbp - 4], 0 #integer
+mov BYTE [rbp - 5], 1 #boolean
+mov BYTE [rbp - 6], 'a' #char
+movsd xmm0, [.f0]             #Float
+movsd qword [rbp - 16], xmm0  # (have to do it in two because >:3)
+mov dword[rbp-20], .s0 #string (stored as a pointer (might change later :3))
+# other code
+pop rbp
+<scope end>
+
+section .data:
+.f0: dq 123.456
+.s0
+
+
+
+EXPRESSIONS:
+
+<scope start>
+
+mov dword[rbp - 4], <l>
+mov dword[rbp -8], <r>
+
+## Integers ##
+
+# l + r
+mov eax, dword[rbp-4]
+add eax, dword[rbp-8]
+# eax out
+
+# l - r
+mov eax, dword[rbp-4]
+sub eax, dword[rbp-8]
+# eax out
+
+# l * r 
+mov eax, dword[rbp-4]
+imul eax, dword[rbp-8]
+# eax out
+
+# l / r
+cvtsi2sd xmm0, dword[rbp-4]
+cvtsi2sd xmm1, dword[rbp-8]
+divsd xmm0, xmm1
+# xmm0 out, since float :O
+
+# l == r
+mov eax, dword[rbp-4]
+cmp eax, dword[rbp-8]
+sete al
+
+## Floating point numbers ##
+
+
+movsd xmm0, [<l>]
+movsd qword[rbp-8], xmm0
+movsd xmm0, [<r>]
+movsd qword[rbp-16], xmm0
+
+# l + r
+movsd xmm0, qword[rbp-8]
+addsd xmm0, qword[rbp-16]
+# xmm0 out
+
+# l - r
+movsd xmm0, qword[rbp-8]
+subsd xmm0, qword[rbp-16]
+# xmm0 out
+
+# l * r
+movsd xmm0, qword[rbp-8]
+mulsd xmm0, qword[rbp-16]
+# xmm0 out
+
+# l / r
+movsd xmm0, qword[rbp-8]
+divsd xmm0, qword[rbp-16]
+# xmm0 out
+
+# l == r
+movsd xmm0, qword[rbp-8]
+ucomisd xm0, qword[rbp-16]
+sete al
+
+## Boolean Values ##
+
+mov byte[rbp-4], <l>
+mov byte[rbp-8], <r>
+
+# l && r
+movzx eax, byte[rbp-4]
+and al, byte[rbp-8]
+# eax out (al specifically)
+
+# l || r 
+movzx eax, byte[rbp-4]
+or al, byte[rbp-8]
+# eax out (al specifically)
+
+# !r
+movzx eax, byte[rbp-4]
+xor al, 1
+# eax out (al specifically)
+
+# l == r
+movzx eax, byte[rbp-4]
+cmp al, byte[rbp-8]
+sete al
+# eax out (al specifically)
+
+# examples 
+
+# b = a * 4 - 3 * 3; ( a = rbp -4)
+
+<scope end>
+
