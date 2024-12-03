@@ -241,8 +241,8 @@ imul eax, dword[rbp-8]
 # eax out
 
 # l / r
-cvtsi2sd xmm0, dword[rbp-4]
-cvtsi2sd xmm1, dword[rbp-8]
+cvtsi2sd xmm0, dword[rbp-8]
+cvtsi2sd xmm1, dword[rbp-4]
 divsd xmm0, xmm1
 # xmm0 out, since float :O
 

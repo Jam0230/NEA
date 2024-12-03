@@ -31,22 +31,16 @@ pub fn parse_table() {
 
 pub fn load_operation_table() -> HashMap<(&'static str, &'static str, &'static str), &'static str> {
     let hash = HashMap::from([
+        // No inter-type operations
+        // e.g (int + float)
         (("Add", "Int", "Int"), "Int"),
         (("Add", "Float", "Float"), "Float"),
-        (("Add", "Int", "Float"), "Float"),
-        (("Add", "Float", "Int"), "Float"),
         (("Sub", "Int", "Int"), "Int"),
         (("Sub", "Float", "Float"), "Float"),
-        (("Sub", "Int", "Float"), "Float"),
-        (("Sub", "Float", "Int"), "Float"),
         (("Mul", "Int", "Int"), "Int"),
         (("Mul", "Float", "Float"), "Float"),
-        (("Mul", "Int", "Float"), "Float"),
-        (("Mul", "Float", "Int"), "Float"),
         (("Div", "Int", "Int"), "Float"),
         (("Div", "Float", "Float"), "Float"),
-        (("Div", "Int", "Float"), "Float"),
-        (("Div", "Float", "Int"), "Float"),
         (("Eq", "Int", "Int"), "Bool"),
         (("Eq", "Float", "Float"), "Bool"),
         (("Eq", "Str", "Str"), "Bool"),

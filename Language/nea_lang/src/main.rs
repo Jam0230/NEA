@@ -51,16 +51,25 @@ fn main() {
                             let mut tokens =
                                 scanner::scanner::lexical_analyse(file_contents).expect("");
 
-                            let ast = parser::parser::parse(&mut tokens).expect("");
-                            println!("{:#?}", ast);
-                            codegen::codegen::test(ast.clone());
-                            let semantic_errs =
-                                semantics::semantic_analysis::semantic_analyser(ast.clone());
-                            if semantic_errs != 0 {
-                                println!(
-                                    "\n\nOh no, errors found :O\nthat means i have to quit :("
-                                );
-                                return;
+                            let _ast = parser::parser::parse(&mut tokens);
+
+                            match _ast {
+                                Ok(ast) => {
+                                    println!("{:#?}", ast);
+                                    // codegen::codegen::test(ast.clone());
+                                    let semantic_errs =
+                                        semantics::semantic_analysis::semantic_analyser(
+                                            ast.clone(),
+                                        );
+                                    if semantic_errs != 0 {
+                                        println!(
+                                            "\n\nOh no, errors found :O\nthat means i have to quit :("
+                                        );
+                                        return;
+                                    }
+                                    codegen::codegen::generate_assembly(ast);
+                                }
+                                Err(e) => println!("{}", e),
                             }
                         }
                         Err(e) => {

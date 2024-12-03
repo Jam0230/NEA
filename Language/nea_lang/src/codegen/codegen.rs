@@ -1,54 +1,19 @@
 use crate::parser::parser::{Decl, Expr, Stmt};
 
-fn expr_node_gen(
-    node: Expr,
-    mut regs_used: (Vec<String>, Vec<String>),
-) -> (Vec<String>, Vec<String>) {
-    /*
-    code snippet for each node type
-    when loading a value into a register add it to the the regs_used
-    when doing an operation use the last two registers in the regs_used
-    */
+struct Assembly {
+    text_string: String,
+    data_string: String,
+    stack_offset: i32,
+}
 
-    let usable_regs = ["rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"];
-    println!("{:?}", regs_used);
-
-    match node.expr_type.as_str() {
-        "Int" => {
-            // find next available register
-            let mut used_register = String::from("");
-            for reg in usable_regs {
-                if !regs_used.0.contains(&String::from(reg)) {
-                    used_register = String::from(reg);
-                    regs_used.0.push(String::from(reg));
-                    break;
-                }
-            }
-
-            if used_register == "" {
-                //TODO: Temp error
-                println!(
-                    "No registers available :O\nplease slim down this equation so I can do it :3"
-                );
-                return regs_used;
-            }
-
-            match used_register.chars().last().unwrap() {
-                'x' | 'i' => used_register = format!("e{}", &used_register[1..]),
-                _ => {
-                    used_register = format!("{}d", used_register);
-                }
-            }
-
-            let value: i32 = node.val.unwrap().parse::<i32>().unwrap();
-
-            //TODO: change this to actually add the assembly to a file
-            println!("mov {}, {}", used_register, value);
+impl Assembly {
+    fn new(text_string: String, data_string: String) -> Self {
+        Self {
+            text_string,
+            data_string,
+            stack_offset: 0,
         }
-        _ => println!("{}", node.expr_type),
     }
-
-    return regs_used;
 }
 
 /*
@@ -68,14 +33,127 @@ left shift 1 move record if last move was right and go to generate mode
 
 */
 
-fn rpngen(expression: Expr) {
+fn expression_node_gen(
+    node: Expr,
+    mut regs_used: Vec<String>,
+) -> (
+    String,      /*Node str*/
+    String,      /*Data Str*/
+    Vec<String>, /*Used Regs*/
+) {
+    let mut node_str = String::new();
+    let mut data_str = String::new();
+
+    let usable_regs_int = ["rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"];
+
+    match node.expr_type.as_str() {
+        // ## Literals ##
+        "Int" | "Bool" | "Char" => {
+            let mut register = String::new();
+            for reg in usable_regs_int {
+                if !regs_used.contains(&String::from(reg)) {
+                    register = String::from(reg);
+                    regs_used.push(String::from(reg));
+                    break;
+                }
+            }
+
+            if register == String::new() {
+                print!("Expression is too chunky :O\n Please make it shorter for me :3");
+                return (String::new(), String::new(), regs_used);
+            }
+
+            match node.expr_type.as_str() {
+                "Int" => {
+                    if ['x', 'i'].contains(&register.chars().last().unwrap()) {
+                        register = register.replace("r", "e");
+                    } else {
+                        register = format!("{}d", register);
+                    }
+                }
+                _ => {
+                    if register.chars().last().unwrap() == 'x' {
+                        register = format!("{}l", register.chars().nth(1).unwrap());
+                    } else if register.chars().last().unwrap() == 'i' {
+                        register = format!("{}l", register.replace("r", ""));
+                    } else {
+                        register += "b";
+                    }
+                }
+            }
+
+            node_str = format!("mov {}, {}", register, node.val.unwrap());
+        }
+        // ## Operations ##
+        "Add" | "Sub" | "Mul" => {
+            if let Some('r') = regs_used.last().unwrap().chars().nth(0) {
+                // if integer operations
+                let operand_2 = regs_used.pop().unwrap();
+                let operand_1 = regs_used.pop().unwrap();
+
+                let mut opcode = String::new();
+                match node.expr_type.as_str() {
+                    "Add" | "Sub" => {
+                        opcode = node.expr_type.to_lowercase();
+                    }
+                    _ => {
+                        opcode = String::from("imul");
+                    }
+                }
+
+                node_str = format!("{} {}, {}", opcode, operand_1, operand_2);
+                regs_used.push(operand_1);
+            }
+        }
+        "Div" => {
+            if let Some('r') = regs_used.last().unwrap().chars().nth(0) {
+                // if integer Operations
+                let operand_2 = regs_used.pop().unwrap();
+                let operand_1 = regs_used.pop().unwrap();
+
+                let mut register_1 = String::new();
+                let mut register_2 = String::new();
+                let mut done_1 = false;
+                for i in 0..=15 {
+                    if !regs_used.contains(&format!("xmm{}", i)) {
+                        if !done_1 {
+                            register_1 = format!("xmm{}", i);
+                            done_1 = true;
+                            continue;
+                        } else {
+                            register_2 = format!("xmm{}", i);
+                            break;
+                        }
+                    }
+                }
+
+                node_str = format!(
+                    "cvtsi2sd {reg_1}, {op_1}\ncvtsi2sd {reg_2}, {op_2}\ndivsd {reg_1}, {reg_2}",
+                    op_1 = operand_1,
+                    op_2 = operand_2,
+                    reg_1 = register_1,
+                    reg_2 = register_2
+                );
+                regs_used.push(register_1);
+            }
+        }
+        _ => {
+            println!("{}", node.expr_type);
+        }
+    }
+
+    (node_str, data_str, regs_used)
+}
+
+fn rpngen(expression: Expr) -> (String, String) {
     let mut moves = vec![0];
     let mut skipleft = false;
+    let mut expression_str = String::new();
+    let mut data_str = String::new();
 
-    let mut regs_used: (Vec<String>, Vec<String>) = (Vec::new(), Vec::new()); // (integer regs,
-                                                                              // floating point)
+    let mut regs_used: Vec<String> = Vec::new();
 
-    while moves.len() >= 1 {
+    loop {
         let mut current_node = expression.clone();
         for _move in moves.clone() {
             if _move == 0 && current_node.left.is_some() {
@@ -93,8 +171,15 @@ fn rpngen(expression: Expr) {
             moves.push(0);
         }
 
-        println!("\nGenerating {}", current_node.expr_type);
-        regs_used = expr_node_gen(current_node, regs_used);
+        let (node_str, node_data_str, regs_used_temp) =
+            expression_node_gen(current_node, regs_used);
+        regs_used = regs_used_temp;
+        expression_str = format!("{}\n{}", expression_str, node_str);
+        data_str = format!("{}\n{}", data_str, node_data_str);
+
+        if moves.len() == 0 {
+            break;
+        }
 
         if moves.last().unwrap() == &0 {
             moves.pop();
@@ -104,14 +189,62 @@ fn rpngen(expression: Expr) {
             moves.pop();
             skipleft = true;
         }
-
-        if moves.len() == 0 {
-            println!("\nGenerating {}", expression.expr_type);
-        }
     }
+    (expression_str, data_str)
 }
 
-pub fn test(statement: Stmt) {
-    let expression = statement.decl_node.unwrap().value.unwrap();
-    rpngen(expression);
+/*
+ ## Generating assembly ##
+
+recursivly go through the ast adding the generated assembly to the correct string in the assembly struct
+ - Normal code goes in "text_string"
+ - Data for floating point and string constants in "data_string"
+ :qa
+  */
+fn recursive_gen(current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
+    match current_stmt.stmt_type.as_str() {
+        "DeclStmt" => {
+            let (expression_str, expr_data_str) =
+                rpngen(current_stmt.clone().decl_node.unwrap().value.unwrap());
+
+            let mut decl_str = String::new();
+
+            match current_stmt.decl_node.unwrap().var_type.unwrap().as_str() {
+                "int" => {
+                    assembly.stack_offset += 4;
+                    decl_str = format!(
+                        "{}\nmov dword[rbp-{}], eax",
+                        expression_str, assembly.stack_offset
+                    );
+                }
+                "bool" | "char" => {
+                    assembly.stack_offset += 1;
+                    decl_str = format!(
+                        "{}\nmov byte[rbp-{}], al",
+                        expression_str, assembly.stack_offset
+                    );
+                }
+                "float" => {
+                    assembly.stack_offset += 8;
+                    decl_str = format!(
+                        "{}\nmovsd qword[rbp-{}], xmm0",
+                        expression_str, assembly.stack_offset
+                    );
+                }
+                _ => {}
+            }
+
+            println!("{}", decl_str);
+        }
+        _ => {
+            println!("{}", current_stmt.stmt_type)
+        }
+    }
+
+    assembly
+}
+
+pub fn generate_assembly(ast: Stmt) {
+    let mut assembly = Assembly::new(String::new(), String::new());
+    recursive_gen(ast, assembly);
 }
