@@ -281,7 +281,7 @@ divsd xmm0, qword[rbp-16]
 
 # l == r
 movsd xmm0, qword[rbp-8]
-ucomisd xm0, qword[rbp-16]
+ucomisd xmm0, qword[rbp-16]
 sete al
 
 ## Boolean Values ##
@@ -309,10 +309,6 @@ movzx eax, byte[rbp-4]
 cmp al, byte[rbp-8]
 sete al
 # eax out (al specifically)
-
-# examples 
-
-# b = a * 4 - 3 * 3; ( a = rbp -4)
 
 <scope end>
 

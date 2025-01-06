@@ -92,7 +92,7 @@ fn type_check_expr(
             match _type {
                 Some(t) => return Ok(t),
                 None => {
-                    //TODO: You know what im going to type here :3
+                    //TODO: You know what im going to say here :3
                     return Err(format!(
                         "No symbol '{}' in current scope",
                         current_expr.val.unwrap()
