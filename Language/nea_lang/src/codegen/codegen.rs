@@ -19,12 +19,13 @@ impl Symbol {
 
 #[derive(Debug)]
 struct Assembly {
-    text_string: String,
-    data_string: String,
-    stack_offset: i32,
-    symbol_table: Vec<Symbol>,
-    float_num: i32,
-    jump_num: i32,
+    text_string: String, // the assembly code
+    data_string: String, // stored data (floats, strings)
+    stack_offset: i32,   // current offset being used for variables
+    // (going to have to rethink this one)
+    symbol_table: Vec<Symbol>, // table of symbols being used in the program
+    float_num: i32,            // current number used for float labels
+    jump_num: i32,             // current number used for jump point numbers
 }
 
 impl Assembly {
@@ -252,7 +253,54 @@ fn expression_node_gen(
                 regs_used.push(operand_1);
             }
         }
+        "Mod" => {
+            if let Some('r') = regs_used.last().unwrap().chars().nth(0) {
+                // if rax / rdx in use push to stack and pop after
+                // put dividend (first one) in rax
+                // put divisor in next availble register
+                // div <divisor>
+                // remainder stored in rdx moved to operand 1
+
+                let operand_2 = regs_used.pop().unwrap();
+                let operand_1 = regs_used.pop().unwrap();
+
+                let mut pushed_regs: Vec<String> = Vec::new();
+                for reg in ["rax", "rdx"] {
+                    if regs_used.contains(&String::from(reg)) {
+                        node_str = format!("{}\npush {}", node_str, reg);
+                        pushed_regs.push(String::from(reg));
+                    }
+                }
+
+                let mut backup_reg: String = String::new();
+                for reg in usable_regs_int {
+                    if !(regs_used.contains(&String::from(reg)) || ["rax", "rdx"].contains(&reg)) {
+                        backup_reg = String::from(reg);
+                    }
+                }
+
+                if operand_2 == String::from("rdx") {
+                    node_str = format!(
+                        "{}\nmov rax, {}\n mov {}, rdx\nxor rdx, rdx\ndiv {}\nmov {}, rdx",
+                        node_str, operand_1, backup_reg, backup_reg, operand_1
+                    );
+                } else {
+                    node_str = format!(
+                        "{}\nmov rax, {}\nxor rdx, rdx\ndiv {}\nmov {}, rdx",
+                        node_str, operand_1, operand_2, operand_1
+                    );
+                }
+
+                regs_used.push(operand_1);
+
+                for reg in pushed_regs {
+                    node_str = format!("{}\npop {}", node_str, reg);
+                }
+            } else {
+            }
+        }
         "LogAnd" | "LogOr" => {
+            println!("{:?}", regs_used);
             let mut operand_2 = regs_used.pop().unwrap();
             let mut operand_1 = regs_used.pop().unwrap();
             regs_used.push(operand_1.clone());
@@ -302,9 +350,15 @@ fn expression_node_gen(
             if let Some('r') = regs_used.last().unwrap().chars().nth(0) {
                 let operand_2 = regs_used.pop().unwrap();
                 let operand_1 = regs_used.pop().unwrap();
-                regs_used.push(operand_1.clone());
 
-                let mut return_reg = operand_1.clone();
+                let mut return_reg: String = String::new();
+                for reg in usable_regs_int {
+                    if !regs_used.contains(&String::from(reg)) {
+                        return_reg = String::from(reg);
+                        regs_used.push(String::from(reg));
+                        break;
+                    }
+                }
 
                 if return_reg.chars().last().unwrap() == 'x' {
                     return_reg = format!("{}l", return_reg.chars().nth(1).unwrap());
@@ -321,9 +375,15 @@ fn expression_node_gen(
             } else {
                 let operand_2 = regs_used.pop().unwrap();
                 let operand_1 = regs_used.pop().unwrap();
-                regs_used.push(operand_1.clone());
 
-                let mut return_reg = operand_1.clone();
+                let mut return_reg: String = String::new();
+                for reg in usable_regs_int {
+                    if !regs_used.contains(&String::from(reg)) {
+                        return_reg = String::from(reg);
+                        regs_used.push(String::from(reg));
+                        break;
+                    }
+                }
 
                 if return_reg.chars().last().unwrap() == 'x' {
                     return_reg = format!("{}l", return_reg.chars().nth(1).unwrap());
@@ -343,7 +403,6 @@ fn expression_node_gen(
             println!("{}", node.expr_type);
         }
     }
-
     (node_str, data_str, regs_used, float_num)
 }
 
@@ -388,12 +447,10 @@ fn rpngen(
             break;
         }
 
-        if moves.last().unwrap() == &0 {
-            moves.pop();
+        if moves.pop().unwrap() == 0 {
             moves.push(1);
             skipleft = false;
         } else {
-            moves.pop();
             skipleft = true;
         }
     }
@@ -403,15 +460,19 @@ fn rpngen(
 /*
  ## Generating assembly ##
 
-recursivly go through the ast adding the generated assembly to the correct string in the assembly struct
+recursivly go through the ast adding the generated assembly to the correct string in the assembly struct (much like semantic analysis)
  - Normal code goes in "text_string"
  - Data for floating point and string constants in "data_string"
   */
 fn recursive_gen(current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
     match current_stmt.stmt_type.as_str() {
+        // ## Statements ##
         "ElseStmt" => {
             // generate body
-            assembly = recursive_gen(*current_stmt.clone().body.unwrap(), assembly);
+            match current_stmt.clone().body {
+                Some(body) => assembly = recursive_gen(*body, assembly),
+                None => {}
+            }
         }
         "IfStmt" | "ElifStmt" => {
             // generate expression assembly for if stmt
@@ -434,8 +495,12 @@ fn recursive_gen(current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                 "{}\n{}\ncmp al, 1\njne .{}",
                 assembly.text_string, expression_str, jump_num
             );
-            assembly = recursive_gen(*current_stmt.clone().body.unwrap(), assembly); // generate
-                                                                                     // body
+
+            match current_stmt.clone().body {
+                Some(body) => assembly = recursive_gen(*body, assembly),
+                None => {}
+            }
+
             assembly.text_string = format!("{}\n.{}:", assembly.text_string, jump_num);
 
             match current_stmt.clone().elif_stmt {
@@ -447,14 +512,43 @@ fn recursive_gen(current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                 None => {}
             }
 
-            assembly.text_string = assembly.text_string.replace(
-                format!(".{}:", jump_num).as_str(),
-                format!("jmp .{}\n.{}:", assembly.jump_num, jump_num).as_str(),
-            );
-
             if current_stmt.stmt_type.as_str() == "IfStmt" {
+                for i in jump_num..assembly.jump_num {
+                    assembly.text_string = assembly.text_string.replace(
+                        format!(".{}:", i).as_str(),
+                        format!("jmp .{}\n.{}:", assembly.jump_num, i).as_str(),
+                    );
+                }
                 assembly.text_string = format!("{}\n.{}:", assembly.text_string, assembly.jump_num);
             }
+        }
+        "WhileStmt" => {
+            let jump_num_top = assembly.jump_num;
+            let jump_num_bot = assembly.jump_num + 1;
+            assembly.jump_num += 2;
+
+            let (expression_str, expr_data_str, float_num_) = rpngen(
+                current_stmt.clone().expr.unwrap(),
+                assembly.symbol_table.clone(),
+                assembly.float_num,
+            );
+            assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
+            assembly.float_num = float_num_;
+
+            assembly.text_string = format!(
+                "{}\n\n.{}:{}\ncmp al, 1\n jne .{}",
+                assembly.text_string, jump_num_top, expression_str, jump_num_bot
+            );
+
+            match current_stmt.clone().body {
+                Some(body) => assembly = recursive_gen(*body, assembly),
+                None => {}
+            }
+
+            assembly.text_string = format!(
+                "{}\n\njmp .{}\n.{}:",
+                assembly.text_string, jump_num_top, jump_num_bot
+            );
         }
         // ## Variables ##
         "DeclStmt" => {

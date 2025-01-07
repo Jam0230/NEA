@@ -109,6 +109,8 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
                 parameters.push(Some(collected_values[index - 1].clone()));
             }
 
+            println!("{:?}", parameters);
+
             match node_type {
                 // node creationg functions
                 "Stmt" => {

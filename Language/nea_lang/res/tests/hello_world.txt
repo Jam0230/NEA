@@ -1,11 +1,19 @@
-let int a = 4;
+let int a = 0;
 
-if a == 3{
-  a += 3;
-} 
-elif a ==4 {
-    a = 10;
-}
-else {
-    a = 12;
+while a != 100{
+    a += 1;
+    
+
+    if (a%5==0) && (a%3==0){
+
+    }
+    elif a % 5 == 0{
+
+    }
+    elif a % 3 == 0{
+
+    }
+    else{
+
+    }
 }

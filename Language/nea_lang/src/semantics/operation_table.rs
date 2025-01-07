@@ -41,6 +41,8 @@ pub fn load_operation_table() -> HashMap<(&'static str, &'static str, &'static s
         (("Mul", "Float", "Float"), "Float"),
         (("Div", "Int", "Int"), "Float"),
         (("Div", "Float", "Float"), "Float"),
+        (("Mod", "Int", "Int"), "Int"),
+        (("Mod", "Float", "Float"), "Float"),
         (("Eq", "Int", "Int"), "Bool"),
         (("Eq", "Float", "Float"), "Bool"),
         (("Eq", "Str", "Str"), "Bool"),

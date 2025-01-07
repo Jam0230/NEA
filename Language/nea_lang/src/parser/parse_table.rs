@@ -213,6 +213,10 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
             ("<MEP>", "/"),
             vec!["/", "<UE>", "|Expr-Div,3,31_|", "<MEP>"],
         ),
+        (
+            ("<MEP>", "%"),
+            vec!["%", "<UE>", "|Expr-Mod,3,31_|", "<MEP>"],
+        ),
         (("<MEP>", "+"), vec![]),
         (("<MEP>", "-"), vec![]),
         (("<MEP>", ">"), vec![]),

@@ -103,8 +103,8 @@ fn type_check_expr(
         "Int" | "Float" | "Str" | "Bool" | "Char" => {
             return Ok(SymbolTypes::from_string(current_expr.expr_type));
         }
-        "Eq" | "Neq" | "Lt" | "Gt" | "LtEq" | "GtEq" | "Add" | "Sub" | "Mul" | "Div" | "LogAnd"
-        | "LogOr" => {
+        "Eq" | "Neq" | "Lt" | "Gt" | "LtEq" | "GtEq" | "Add" | "Sub" | "Mul" | "Div" | "Mod"
+        | "LogAnd" | "LogOr" => {
             let operation_table = operation_table::load_operation_table();
 
             let left = type_check_expr(*current_expr.left.unwrap(), symbol_tables.clone());
