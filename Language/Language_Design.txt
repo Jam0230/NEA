@@ -20,6 +20,8 @@ Variable typing/declaration:
 Functions:
   - def
   - return
+
+//Maybe
 OOP:
   - struct
   - class
@@ -88,22 +90,13 @@ For loop:
   }
 
 While loop:
-  while ( < Condition > ) {
+  while  < Condition >  {
 
   }
 
-match/case statements:
-  match < Id > {
-    case < Val > {
+Functions:
+  
 
-    }
-    case < Val > {
-
-    }
-    case _{
-
-    }
-  }
  
 Comments:
 // This is a Comment
@@ -128,13 +121,13 @@ Woah new line :O
             | <Assign_Stmt> ";"
             | <If_Stmt>
             | <While_Stmt>
+            | <For_Stmt>
 
 <Declaration_Stmt> = "let" [Type] [Id] "=" <Or_Expr> 
 
 <Assign_Stmt> = [Id] [Assignment] <Or_Expr>
 
 <If_Stmt> = "if" <Or_Expr>  "{" <Statements> "}" <Elif_Stmt_Prime> <Else_Stmt>
-
 
 <Elif_Stmt_Prime> = <Elif_Stmt> <Elif_Stmt_Prime>
         | ε
@@ -145,6 +138,8 @@ Woah new line :O
             | ε
 
 <While_Stmt> = "while" <Or_Expr> "{" <Statements> "}"
+
+<For_Stmt> = "for" "(" <Decleration_Stmt> ";" <Or_Expr> ";" <Or_Expr> ") "{" <Statements> "}"
 
 <Or_Expr> = <And_Expr> <Or_Expr_Prime>
 <Or_Expr_Prime> = "||" <And_Expr> <Or_Expr_Prime>

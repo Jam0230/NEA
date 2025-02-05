@@ -35,29 +35,34 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
     let hash = HashMap::from([
         (
             ("<SS>", "let"),
-            vec!["<S>", "<SS>", "|Stmt-DeclStmt,2,2____1|"],
+            vec!["<S>", "<SS>", "|Stmt-DeclStmt,2,1____0|"],
         ),
         (
             ("<SS>", "[Id]"),
-            vec!["<S>", "<SS>", "|Stmt-AssignStmt,2,2____1|"],
+            vec!["<S>", "<SS>", "|Stmt-AssignStmt,2,1____0|"],
         ),
         (
             ("<SS>", "if"),
-            vec!["<S>", "<SS>", "|Stmt-IfStmt,8,_75321|"],
+            vec!["<S>", "<SS>", "|Stmt-IfStmt,8,_64210|"],
         ),
         (
             ("<SS>", "while"),
-            vec!["<S>", "<SS>", "|Stmt-WhileStmt,6,_53__1|"],
+            vec!["<S>", "<SS>", "|Stmt-WhileStmt,6,_42__0|"],
+        ),
+        (
+            ("<SS>", "for"),
+            vec!["<S>", "<SS>", "|Stmt-ForStmt,12,_72950|"], /* IT NEEDS 10 FLKAHFLKSAHFKJFKJlfda*/
         ),
         (("<SS>", "}"), vec!["|Stmt-None,0,______|"]),
         (("<SS>", "$"), vec!["|Stmt-None,0,______|"]),
-        (("<S>", "let"), vec!["<DS>", ";", "|Decl-VarDecl,6,452_|"]),
+        (("<S>", "let"), vec!["<DS>", ";", "|Decl-VarDecl,6,341_|"]),
         (
             ("<S>", "[Id]"),
-            vec!["<AS>", ";", "|Decl-VarAssign,4,4_23|"],
+            vec!["<AS>", ";", "|Decl-VarAssign,4,3_12|"],
         ),
         (("<S>", "if"), vec!["<IS>"]),
         (("<S>", "while"), vec!["<WS>"]),
+        (("<S>", "for"), vec!["<FS>"]),
         (("<DS>", "let"), vec!["let", "[Type]", "[Id]", "=", "<OE>"]),
         (("<AS>", "[Id]"), vec!["[Id]", "[Assignment]", "<OE>"]),
         (
@@ -66,7 +71,7 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         ),
         (
             ("<EISP>", "elif"),
-            vec!["<EIS>", "<EISP>", "|Stmt-ElifStmt,6,_53__1|"],
+            vec!["<EIS>", "<EISP>", "|Stmt-ElifStmt,6,_42__0|"],
         ),
         (("<EISP>", "else"), vec!["|Stmt-None,0,______|"]),
         (("<EISP>", "let"), vec!["|Stmt-None,0,______|"]),
@@ -78,7 +83,7 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<EIS>", "elif"), vec!["elif", "<OE>", "{", "<SS>", "}"]),
         (
             ("<ES>", "else"),
-            vec!["else", "{", "<SS>", "}", "|Stmt-ElseStmt,4,__2___|"],
+            vec!["else", "{", "<SS>", "}", "|Stmt-ElseStmt,4,__1___|"],
         ),
         (("<ES>", "let"), vec!["|Stmt-None,0,______|"]),
         (("<ES>", "[Id]"), vec!["|Stmt-None,0,______|"]),
@@ -87,6 +92,26 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<ES>", "}"), vec!["|Stmt-None,0,______|"]),
         (("<ES>", "$"), vec!["|Stmt-None,0,______|"]),
         (("<WS>", "while"), vec!["while", "<OE>", "{", "<SS>", "}"]),
+        (
+            ("<FS>", "for"),
+            vec![
+                "for",
+                "(",
+                "<DS>",
+                "|Decl-VarDecl,5,230_|",
+                "|Stmt-DeclStmt,1,0_____|",
+                ";",
+                "<OE>",
+                ";",
+                "<AS>",
+                "|Decl-VarAssign,3,2_01|",
+                "|Stmt-AssignStmt,1,0_____|",
+                ")",
+                "{",
+                "<SS>",
+                "}",
+            ],
+        ),
         (("<OE>", "!"), vec!["<AE>", "<OEP>"]),
         (("<OE>", "[Int]"), vec!["<AE>", "<OEP>"]),
         (("<OE>", "[Float]"), vec!["<AE>", "<OEP>"]),
@@ -97,7 +122,7 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<OE>", "("), vec!["<AE>", "<OEP>"]),
         (
             ("<OEP>", "||"),
-            vec!["||", "<AE>", "|Expr-LogOr,3,31_|", "<OEP>"],
+            vec!["||", "<AE>", "|Expr-LogOr,3,20_|", "<OEP>"],
         ),
         (("<OEP>", ";"), vec![]),
         (("<OEP>", ")"), vec![]),
@@ -112,7 +137,7 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<AE>", "("), vec!["<EE>", "<AEP>"]),
         (
             ("<AEP>", "&&"),
-            vec!["&&", "<EE>", "|Expr-LogAnd,3,31_|", "<AEP>"],
+            vec!["&&", "<EE>", "|Expr-LogAnd,3,20_|", "<AEP>"],
         ),
         (("<AEP>", "||"), vec![]),
         (("<AEP>", ";"), vec![]),
@@ -128,11 +153,11 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<EE>", "("), vec!["<IE>", "<EEP>"]),
         (
             ("<EEP>", "=="),
-            vec!["==", "<IE>", "|Expr-Eq,3,31_|", "<EEP>"],
+            vec!["==", "<IE>", "|Expr-Eq,3,20_|", "<EEP>"],
         ),
         (
             ("<EEP>", "!="),
-            vec!["!=", "<IE>", "|Expr-Neq,3,31_|", "<EEP>"],
+            vec!["!=", "<IE>", "|Expr-Neq,3,20_|", "<EEP>"],
         ),
         (("<EEP>", "&&"), vec![]),
         (("<EEP>", "||"), vec![]),
@@ -149,19 +174,19 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<IE>", "("), vec!["<ADE>", "<IEP>"]),
         (
             ("<IEP>", ">"),
-            vec![">", "<ADE>", "|Expr-Gt,3,31_|", "<IEP>"],
+            vec![">", "<ADE>", "|Expr-Gt,3,20_|", "<IEP>"],
         ),
         (
             ("<IEP>", "<"),
-            vec!["<", "<ADE>", "|Expr-Lt,3,31_|", "<IEP>"],
+            vec!["<", "<ADE>", "|Expr-Lt,3,20_|", "<IEP>"],
         ),
         (
             ("<IEP>", ">="),
-            vec![">=", "<ADE>", "|Expr-GtEq,3,31_|", "<IEP>"],
+            vec![">=", "<ADE>", "|Expr-GtEq,3,20_|", "<IEP>"],
         ),
         (
             ("<IEP>", "<="),
-            vec!["<=", "<ADE>", "|Expr-LtEq,3,31_|", "<IEP>"],
+            vec!["<=", "<ADE>", "|Expr-LtEq,3,20_|", "<IEP>"],
         ),
         (("<IEP>", "=="), vec![]),
         (("<IEP>", "!="), vec![]),
@@ -180,11 +205,11 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<ADE>", "("), vec!["<ME>", "<ADEP>"]),
         (
             ("<ADEP>", "+"),
-            vec!["+", "<ME>", "|Expr-Add,3,31_|", "<ADEP>"],
+            vec!["+", "<ME>", "|Expr-Add,3,20_|", "<ADEP>"],
         ),
         (
             ("<ADEP>", "-"),
-            vec!["-", "<ME>", "|Expr-Sub,3,31_|", "<ADEP>"],
+            vec!["-", "<ME>", "|Expr-Sub,3,20_|", "<ADEP>"],
         ),
         (("<ADEP>", ">"), vec![]),
         (("<ADEP>", "<"), vec![]),
@@ -207,15 +232,15 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<ME>", "("), vec!["<UE>", "<MEP>"]),
         (
             ("<MEP>", "*"),
-            vec!["*", "<UE>", "|Expr-Mul,3,31_|", "<MEP>"],
+            vec!["*", "<UE>", "|Expr-Mul,3,20_|", "<MEP>"],
         ),
         (
             ("<MEP>", "/"),
-            vec!["/", "<UE>", "|Expr-Div,3,31_|", "<MEP>"],
+            vec!["/", "<UE>", "|Expr-Div,3,20_|", "<MEP>"],
         ),
         (
             ("<MEP>", "%"),
-            vec!["%", "<UE>", "|Expr-Mod,3,31_|", "<MEP>"],
+            vec!["%", "<UE>", "|Expr-Mod,3,20_|", "<MEP>"],
         ),
         (("<MEP>", "+"), vec![]),
         (("<MEP>", "-"), vec![]),
@@ -230,7 +255,7 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<MEP>", ";"), vec![]),
         (("<MEP>", ")"), vec![]),
         (("<MEP>", "{"), vec![]),
-        (("<UE>", "!"), vec!["!", "<UE>", "|Expr-LogNot,2,1__|"]),
+        (("<UE>", "!"), vec!["!", "<UE>", "|Expr-LogNot,2,0__|"]),
         (("<UE>", "[Int]"), vec!["<EA>"]),
         (("<UE>", "[Float]"), vec!["<EA>"]),
         (("<UE>", "[String]"), vec!["<EA>"]),
@@ -238,13 +263,13 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<UE>", "[Bool]"), vec!["<EA>"]),
         (("<UE>", "[Id]"), vec!["<EA>"]),
         (("<UE>", "("), vec!["<EA>"]),
-        (("<EA>", "[Int]"), vec!["[Int]", "|Expr-Int,1,__1|"]),
-        (("<EA>", "[Float]"), vec!["[Float]", "|Expr-Float,1,__1|"]),
-        (("<EA>", "[String]"), vec!["[String]", "|Expr-Str,1,__1|"]),
-        (("<EA>", "[Char]"), vec!["[Char]", "|Expr-Char,1,__1|"]),
-        (("<EA>", "[Bool]"), vec!["[Bool]", "|Expr-Bool,1,__1|"]),
-        (("<EA>", "[Id]"), vec!["[Id]", "|Expr-Id,1,__1|"]),
-        (("<EA>", "("), vec!["(", "<OE>", ")", "|Expr-Group,3,2__|"]),
+        (("<EA>", "[Int]"), vec!["[Int]", "|Expr-Int,1,__0|"]),
+        (("<EA>", "[Float]"), vec!["[Float]", "|Expr-Float,1,__0|"]),
+        (("<EA>", "[String]"), vec!["[String]", "|Expr-Str,1,__0|"]),
+        (("<EA>", "[Char]"), vec!["[Char]", "|Expr-Char,1,__0|"]),
+        (("<EA>", "[Bool]"), vec!["[Bool]", "|Expr-Bool,1,__0|"]),
+        (("<EA>", "[Id]"), vec!["[Id]", "|Expr-Id,1,__0|"]),
+        (("<EA>", "("), vec!["(", "<OE>", ")", "|Expr-Group,3,1__|"]),
     ]);
 
     hash

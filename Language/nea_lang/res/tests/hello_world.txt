@@ -1,19 +1,8 @@
 let int a = 0;
+let int b = 3;
 
-while a != 100{
-    a += 1;
-    
+b += b + 3;
 
-    if (a%5==0) && (a%3==0){
-
-    }
-    elif a % 5 == 0{
-
-    }
-    elif a % 3 == 0{
-
-    }
-    else{
-
-    }
+if b == 3{
+    a = 3;
 }

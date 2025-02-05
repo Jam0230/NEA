@@ -1,7 +1,7 @@
 use crate::parser::parser::{Decl, Expr, Stmt};
 
 #[derive(Clone, Debug)]
-struct Symbol {
+pub struct Symbol {
     name: String,
     _type: String,
     offset: i32,
@@ -17,15 +17,34 @@ impl Symbol {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct SymbolTable {
+    symbols: Vec<Symbol>,
+}
+
+impl SymbolTable {
+    pub fn new() -> Self {
+        Self {
+            symbols: Vec::new(),
+        }
+    }
+
+    pub fn search_for_symbol(self, symbol: String) -> Symbol {
+        println!("{:?}", self.symbols.iter().filter(|x| x.name == symbol));
+        Symbol::new(String::from("hi"), String::from("hi"), 0)
+    }
+}
+
 #[derive(Debug)]
-struct Assembly {
+pub struct Assembly {
     text_string: String, // the assembly code
     data_string: String, // stored data (floats, strings)
     stack_offset: i32,   // current offset being used for variables
     // (going to have to rethink this one)
-    symbol_table: Vec<Symbol>, // table of symbols being used in the program
-    float_num: i32,            // current number used for float labels
-    jump_num: i32,             // current number used for jump point numbers
+    symbol_table: Vec<Symbol>,
+    symbol_tables_table: Vec<SymbolTable>, // table symbol tables (im great at naming)
+    float_num: i32,                        // current number used for float labels
+    jump_num: i32,                         // current number used for jump point numbers
 }
 
 impl Assembly {
@@ -35,10 +54,20 @@ impl Assembly {
             data_string: String::new(),
             stack_offset: 0,
             symbol_table: Vec::new(),
+            symbol_tables_table: Vec::new(),
             float_num: 0,
             jump_num: 0,
         }
     }
+}
+
+fn enter_local_scope(current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
+    assembly.symbol_tables_table.push(SymbolTable::new());
+
+    assembly = recursive_gen(current_stmt, assembly);
+
+    assembly.symbol_tables_table.pop();
+    assembly
 }
 
 /*
@@ -293,14 +322,30 @@ fn expression_node_gen(
 
                 regs_used.push(operand_1);
 
-                for reg in pushed_regs {
+                for reg in pushed_regs.iter().rev() {
                     node_str = format!("{}\npop {}", node_str, reg);
                 }
             } else {
+                let mut operand_3 = String::new();
+                for i in 0..=15 {
+                    if !(regs_used.contains(&format!("xmm{}", i))) {
+                        operand_3 = format!("xmm{}", i);
+                        break;
+                    }
+                }
+
+                let operand_2 = regs_used.pop().unwrap();
+                let operand_1 = regs_used.pop().unwrap();
+
+                // Equation sourced from: https://stackoverflow.com/questions/9505513/floating-point-modulo-operation
+                // V % M = V - trunc(V/M) * M
+                // Innacurate for larger numbers but :P
+
+                node_str = format!("movsd {trunc}, {value}\ndivsd {trunc}, {modulus}\npush rax\ncvttsd2si rax, {trunc}\ncvtsi2sd {trunc}, rax\npop rax\nmulsd {trunc}, {modulus}\nsubsd {value}, {trunc}", value=operand_1, modulus=operand_2, trunc=operand_3);
+                regs_used.push(operand_1);
             }
         }
         "LogAnd" | "LogOr" => {
-            println!("{:?}", regs_used);
             let mut operand_2 = regs_used.pop().unwrap();
             let mut operand_1 = regs_used.pop().unwrap();
             regs_used.push(operand_1.clone());
@@ -464,277 +509,278 @@ recursivly go through the ast adding the generated assembly to the correct strin
  - Normal code goes in "text_string"
  - Data for floating point and string constants in "data_string"
   */
-fn recursive_gen(current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
-    match current_stmt.stmt_type.as_str() {
-        // ## Statements ##
-        "ElseStmt" => {
-            // generate body
-            match current_stmt.clone().body {
-                Some(body) => assembly = recursive_gen(*body, assembly),
-                None => {}
+fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
+    loop {
+        match current_stmt.stmt_type.as_str() {
+            // ## Statements ##
+            "ElseStmt" => {
+                // generate body
+                match current_stmt.clone().body {
+                    Some(body) => assembly = enter_local_scope(*body, assembly),
+                    None => {}
+                }
+            }
+            "IfStmt" | "ElifStmt" => {
+                // generate expression assembly for if stmt
+                // (since boolean value can assume it will be 1 or 0 in al)
+                // generate body of if stmt
+                // generate other parts of stmt (elif's and else)
+
+                let (expression_str, expr_data_str, float_num_) = rpngen(
+                    current_stmt.clone().expr.unwrap(),
+                    assembly.symbol_table.clone(),
+                    assembly.float_num,
+                );
+                assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
+                assembly.float_num = float_num_;
+
+                let jump_num = assembly.jump_num;
+                assembly.jump_num += 1;
+
+                assembly.text_string = format!(
+                    "{}\n{}\ncmp al, 1\njne .{}",
+                    assembly.text_string, expression_str, jump_num
+                );
+
+                match current_stmt.clone().body {
+                    Some(body) => assembly = enter_local_scope(*body, assembly),
+                    None => {}
+                }
+
+                assembly.text_string = format!("{}\n.{}:", assembly.text_string, jump_num);
+
+                match current_stmt.clone().stmt_1 {
+                    Some(elif_stmt) => assembly = recursive_gen(*elif_stmt, assembly),
+                    None => {}
+                }
+                match current_stmt.clone().stmt_2 {
+                    Some(else_stmt) => assembly = recursive_gen(*else_stmt, assembly),
+                    None => {}
+                }
+
+                if current_stmt.stmt_type.as_str() == "IfStmt" {
+                    for i in jump_num..assembly.jump_num {
+                        assembly.text_string = assembly.text_string.replace(
+                            format!(".{}:", i).as_str(),
+                            format!("jmp .{}\n.{}:", assembly.jump_num, i).as_str(),
+                        );
+                    }
+                    assembly.text_string =
+                        format!("{}\n.{}:", assembly.text_string, assembly.jump_num);
+                }
+            }
+            "WhileStmt" => {
+                let jump_num_top = assembly.jump_num;
+                let jump_num_bot = assembly.jump_num + 1;
+                assembly.jump_num += 2;
+
+                let (expression_str, expr_data_str, float_num_) = rpngen(
+                    current_stmt.clone().expr.unwrap(),
+                    assembly.symbol_table.clone(),
+                    assembly.float_num,
+                );
+                assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
+                assembly.float_num = float_num_;
+
+                assembly.text_string = format!(
+                    "{}\n\n.{}:{}\ncmp al, 1\n jne .{}",
+                    assembly.text_string, jump_num_top, expression_str, jump_num_bot
+                );
+
+                match current_stmt.clone().body {
+                    Some(body) => assembly = enter_local_scope(*body, assembly),
+                    None => {}
+                }
+
+                assembly.text_string = format!(
+                    "{}\n\njmp .{}\n.{}:",
+                    assembly.text_string, jump_num_top, jump_num_bot
+                );
+            }
+            // ## Variables ##
+            "DeclStmt" => {
+                let (expression_str, expr_data_str, float_num_) = rpngen(
+                    current_stmt.clone().decl_node.unwrap().value.unwrap(),
+                    assembly.symbol_table.clone(),
+                    assembly.float_num,
+                );
+
+                assembly.float_num = float_num_;
+
+                let mut decl_str = String::new();
+
+                match current_stmt
+                    .decl_node
+                    .clone()
+                    .unwrap()
+                    .var_type
+                    .unwrap()
+                    .as_str()
+                {
+                    "int" => {
+                        assembly.stack_offset += 4;
+                        decl_str = format!(
+                            "{}\nmov dword[rbp-{}], eax",
+                            expression_str, assembly.stack_offset
+                        );
+                    }
+                    "bool" | "char" => {
+                        assembly.stack_offset += 1;
+                        decl_str = format!(
+                            "{}\nmov byte[rbp-{}], al",
+                            expression_str, assembly.stack_offset
+                        );
+                    }
+                    "float" => {
+                        assembly.stack_offset += 8;
+                        decl_str = format!(
+                            "{}\nmovsd qword[rbp-{}], xmm0",
+                            expression_str, assembly.stack_offset
+                        );
+                    }
+                    _ => {}
+                }
+
+                let symbol = Symbol::new(
+                    current_stmt.decl_node.clone().unwrap().id.unwrap(),
+                    current_stmt.decl_node.unwrap().var_type.unwrap(),
+                    assembly.stack_offset,
+                );
+                assembly.symbol_table.push(symbol);
+
+                assembly.text_string = format!("{}\n{}", assembly.text_string, decl_str);
+                assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
+            }
+            "AssignStmt" => {
+                /*
+                   create new expression tree using stmts vaue tree and value being added too |
+
+                   add 2 new nodes:
+                       - operation node (new)
+                           l - identifier node (new)
+                           r - stmts value
+
+                */
+
+                let stmt_value_expr = current_stmt.decl_node.clone().unwrap().value.unwrap();
+                let assign_type = current_stmt.decl_node.clone().unwrap().ass_type.unwrap();
+                let identifier = current_stmt.decl_node.clone().unwrap().id;
+                let symbol = assembly
+                    .symbol_table
+                    .iter()
+                    .find(|x| x.name == identifier.clone().unwrap());
+
+                let full_expr: Expr;
+
+                match assign_type.as_str() {
+                    //TODO: Handle cases where "/=" is used (messes up due to
+                    //how types have been implemented for division operations)
+                    //might be a problem with semantic analysis
+                    "+=" => {
+                        full_expr = Expr {
+                            expr_type: String::from("Add"),
+                            left: Some(Box::new(Expr {
+                                expr_type: String::from("Id"),
+                                left: None,
+                                right: None,
+                                val: identifier,
+                            })),
+                            right: Some(Box::new(stmt_value_expr)),
+                            val: None,
+                        };
+                    }
+                    "-=" => {
+                        full_expr = Expr {
+                            expr_type: String::from("Sub"),
+                            left: Some(Box::new(Expr {
+                                expr_type: String::from("Id"),
+                                left: None,
+                                right: None,
+                                val: identifier,
+                            })),
+                            right: Some(Box::new(stmt_value_expr)),
+                            val: None,
+                        };
+                    }
+                    "*=" => {
+                        full_expr = Expr {
+                            expr_type: String::from("Mul"),
+                            left: Some(Box::new(Expr {
+                                expr_type: String::from("Id"),
+                                left: None,
+                                right: None,
+                                val: identifier,
+                            })),
+                            right: Some(Box::new(stmt_value_expr)),
+                            val: None,
+                        };
+                    }
+                    "=" => {
+                        full_expr = stmt_value_expr;
+                    }
+                    _ => {
+                        // TODO: You could count this as an error but i mean :p
+                        full_expr = Expr {
+                            expr_type: String::from("Add"),
+                            left: Some(Box::new(Expr {
+                                expr_type: String::from("Id"),
+                                left: None,
+                                right: None,
+                                val: identifier,
+                            })),
+                            right: Some(Box::new(stmt_value_expr)),
+                            val: None,
+                        };
+                    }
+                }
+
+                let (expression_str, expr_data_str, float_num_) =
+                    rpngen(full_expr, assembly.symbol_table.clone(), assembly.float_num);
+
+                assembly.float_num = float_num_;
+
+                let mut assign_str = String::new();
+
+                println!("{}", symbol.unwrap()._type);
+
+                match symbol.unwrap()._type.as_str() {
+                    "int" => {
+                        assign_str = format!(
+                            "{}\nmov dword[rbp-{}], eax",
+                            expression_str,
+                            symbol.unwrap().offset
+                        );
+                    }
+                    "bool" | "char" => {
+                        assign_str = format!(
+                            "{}\nmov byte[rbp-{}], al",
+                            expression_str,
+                            symbol.unwrap().offset
+                        );
+                    }
+                    "float" => {
+                        assign_str = format!(
+                            "{}\nmovsd qword[rbp-{}], xmm0",
+                            expression_str,
+                            symbol.unwrap().offset
+                        );
+                    }
+                    _ => {}
+                }
+
+                assembly.text_string = format!("{}\n{}", assembly.text_string, assign_str);
+                assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
+            }
+            _ => {
+                println!("{}", current_stmt.stmt_type)
             }
         }
-        "IfStmt" | "ElifStmt" => {
-            // generate expression assembly for if stmt
-            // (since boolean value can assume it will be 1 or 0 in al)
-            // generate body of if stmt
-            // generate other parts of stmt (elif's and else)
 
-            let (expression_str, expr_data_str, float_num_) = rpngen(
-                current_stmt.clone().expr.unwrap(),
-                assembly.symbol_table.clone(),
-                assembly.float_num,
-            );
-            assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
-            assembly.float_num = float_num_;
-
-            let jump_num = assembly.jump_num;
-            assembly.jump_num += 1;
-
-            assembly.text_string = format!(
-                "{}\n{}\ncmp al, 1\njne .{}",
-                assembly.text_string, expression_str, jump_num
-            );
-
-            match current_stmt.clone().body {
-                Some(body) => assembly = recursive_gen(*body, assembly),
-                None => {}
-            }
-
-            assembly.text_string = format!("{}\n.{}:", assembly.text_string, jump_num);
-
-            match current_stmt.clone().elif_stmt {
-                Some(elif_stmt) => assembly = recursive_gen(*elif_stmt, assembly),
-                None => {}
-            }
-            match current_stmt.clone().else_stmt {
-                Some(else_stmt) => assembly = recursive_gen(*else_stmt, assembly),
-                None => {}
-            }
-
-            if current_stmt.stmt_type.as_str() == "IfStmt" {
-                for i in jump_num..assembly.jump_num {
-                    assembly.text_string = assembly.text_string.replace(
-                        format!(".{}:", i).as_str(),
-                        format!("jmp .{}\n.{}:", assembly.jump_num, i).as_str(),
-                    );
-                }
-                assembly.text_string = format!("{}\n.{}:", assembly.text_string, assembly.jump_num);
-            }
-        }
-        "WhileStmt" => {
-            let jump_num_top = assembly.jump_num;
-            let jump_num_bot = assembly.jump_num + 1;
-            assembly.jump_num += 2;
-
-            let (expression_str, expr_data_str, float_num_) = rpngen(
-                current_stmt.clone().expr.unwrap(),
-                assembly.symbol_table.clone(),
-                assembly.float_num,
-            );
-            assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
-            assembly.float_num = float_num_;
-
-            assembly.text_string = format!(
-                "{}\n\n.{}:{}\ncmp al, 1\n jne .{}",
-                assembly.text_string, jump_num_top, expression_str, jump_num_bot
-            );
-
-            match current_stmt.clone().body {
-                Some(body) => assembly = recursive_gen(*body, assembly),
-                None => {}
-            }
-
-            assembly.text_string = format!(
-                "{}\n\njmp .{}\n.{}:",
-                assembly.text_string, jump_num_top, jump_num_bot
-            );
-        }
-        // ## Variables ##
-        "DeclStmt" => {
-            let (expression_str, expr_data_str, float_num_) = rpngen(
-                current_stmt.clone().decl_node.unwrap().value.unwrap(),
-                assembly.symbol_table.clone(),
-                assembly.float_num,
-            );
-
-            assembly.float_num = float_num_;
-
-            let mut decl_str = String::new();
-
-            match current_stmt
-                .decl_node
-                .clone()
-                .unwrap()
-                .var_type
-                .unwrap()
-                .as_str()
-            {
-                "int" => {
-                    assembly.stack_offset += 4;
-                    decl_str = format!(
-                        "{}\nmov dword[rbp-{}], eax",
-                        expression_str, assembly.stack_offset
-                    );
-                }
-                "bool" | "char" => {
-                    assembly.stack_offset += 1;
-                    decl_str = format!(
-                        "{}\nmov byte[rbp-{}], al",
-                        expression_str, assembly.stack_offset
-                    );
-                }
-                "float" => {
-                    assembly.stack_offset += 8;
-                    decl_str = format!(
-                        "{}\nmovsd qword[rbp-{}], xmm0",
-                        expression_str, assembly.stack_offset
-                    );
-                }
-                _ => {}
-            }
-
-            let symbol = Symbol::new(
-                current_stmt.decl_node.clone().unwrap().id.unwrap(),
-                current_stmt.decl_node.unwrap().var_type.unwrap(),
-                assembly.stack_offset,
-            );
-            assembly.symbol_table.push(symbol);
-
-            assembly.text_string = format!("{}\n{}", assembly.text_string, decl_str);
-            assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
-        }
-        "AssignStmt" => {
-            /*
-               create new expression tree using stmts vaue tree and value being added too |
-
-               add 2 new nodes:
-                   - operation node (new)
-                       l - identifier node (new)
-                       r - stmts value
-
-            */
-
-            let stmt_value_expr = current_stmt.decl_node.clone().unwrap().value.unwrap();
-            let assign_type = current_stmt.decl_node.clone().unwrap().ass_type.unwrap();
-            let identifier = current_stmt.decl_node.clone().unwrap().id;
-            let symbol = assembly
-                .symbol_table
-                .iter()
-                .find(|x| x.name == identifier.clone().unwrap());
-
-            let full_expr: Expr;
-
-            match assign_type.as_str() {
-                //TODO: Handle cases where "/=" is used (messes up due to
-                //how types have been implemented for division operations)
-                //might be a problem with semantic analysis
-                "+=" => {
-                    full_expr = Expr {
-                        expr_type: String::from("Add"),
-                        left: Some(Box::new(Expr {
-                            expr_type: String::from("Id"),
-                            left: None,
-                            right: None,
-                            val: identifier,
-                        })),
-                        right: Some(Box::new(stmt_value_expr)),
-                        val: None,
-                    };
-                }
-                "-=" => {
-                    full_expr = Expr {
-                        expr_type: String::from("Sub"),
-                        left: Some(Box::new(Expr {
-                            expr_type: String::from("Id"),
-                            left: None,
-                            right: None,
-                            val: identifier,
-                        })),
-                        right: Some(Box::new(stmt_value_expr)),
-                        val: None,
-                    };
-                }
-                "*=" => {
-                    full_expr = Expr {
-                        expr_type: String::from("Mul"),
-                        left: Some(Box::new(Expr {
-                            expr_type: String::from("Id"),
-                            left: None,
-                            right: None,
-                            val: identifier,
-                        })),
-                        right: Some(Box::new(stmt_value_expr)),
-                        val: None,
-                    };
-                }
-                "=" => {
-                    full_expr = stmt_value_expr;
-                }
-                _ => {
-                    // TODO: You could count this as an error but i mean :p
-                    full_expr = Expr {
-                        expr_type: String::from("Add"),
-                        left: Some(Box::new(Expr {
-                            expr_type: String::from("Id"),
-                            left: None,
-                            right: None,
-                            val: identifier,
-                        })),
-                        right: Some(Box::new(stmt_value_expr)),
-                        val: None,
-                    };
-                }
-            }
-
-            let (expression_str, expr_data_str, float_num_) =
-                rpngen(full_expr, assembly.symbol_table.clone(), assembly.float_num);
-
-            assembly.float_num = float_num_;
-
-            let mut assign_str = String::new();
-
-            println!("{}", symbol.unwrap()._type);
-
-            match symbol.unwrap()._type.as_str() {
-                "int" => {
-                    assign_str = format!(
-                        "{}\nmov dword[rbp-{}], eax",
-                        expression_str,
-                        symbol.unwrap().offset
-                    );
-                }
-                "bool" | "char" => {
-                    assign_str = format!(
-                        "{}\nmov byte[rbp-{}], al",
-                        expression_str,
-                        symbol.unwrap().offset
-                    );
-                }
-                "float" => {
-                    assign_str = format!(
-                        "{}\nmovsd qword[rbp-{}], xmm0",
-                        expression_str,
-                        symbol.unwrap().offset
-                    );
-                }
-                _ => {}
-            }
-
-            assembly.text_string = format!("{}\n{}", assembly.text_string, assign_str);
-            assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
-        }
-        _ => {
-            println!("{}", current_stmt.stmt_type)
-        }
-    }
-
-    match current_stmt.next {
-        Some(stmt) => {
-            assembly = recursive_gen(*stmt, assembly);
+        if current_stmt.next.is_some() {
+            current_stmt = *current_stmt.next.unwrap();
+        } else {
             return assembly;
         }
-        None => return assembly,
     }
 }
 

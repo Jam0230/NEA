@@ -29,13 +29,13 @@ use crate::{parser::parse_table::load_parse_table, scanner::scanner::Token};
 
 #[derive(Debug, Clone)]
 pub struct Stmt {
-    pub stmt_type: String,            // type of statement ( if, else, while, ..)
-    pub decl_node: Option<Decl>,      // ast decleration node if decleration statement
-    pub expr: Option<Expr>,           // expression linked to statement ( conditions )
-    pub body: Option<Box<Stmt>>,      // stmt branch linked to stmt
-    pub elif_stmt: Option<Box<Stmt>>, // elif statement branch connected to if stmt
-    pub else_stmt: Option<Box<Stmt>>, // else statement connected to if stmt
-    pub next: Option<Box<Stmt>>,      // next statement in branch
+    pub stmt_type: String,         // type of statement ( if, else, while, ..)
+    pub decl_node: Option<Decl>,   // ast decleration node if decleration statement
+    pub expr: Option<Expr>,        // expression linked to statement ( conditions
+    pub body: Option<Box<Stmt>>,   // stmt branch linked to stmt
+    pub stmt_1: Option<Box<Stmt>>, // elif statement / for control variable
+    pub stmt_2: Option<Box<Stmt>>, // else statement / for increment
+    pub next: Option<Box<Stmt>>,   // next statement in branch
 }
 
 #[derive(Debug, Clone)]
@@ -76,6 +76,12 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
 
     while !stack.is_empty() {
         let (next_s, next_i) = (stack.pop().unwrap(), tokens[token_index].clone());
+        println!(
+            "{} | {} | {:?}",
+            next_i,
+            next_s,
+            stack.iter().rev().collect::<Vec<&&str>>()
+        );
 
         if next_s.chars().next().unwrap() == '|' && next_s.chars().nth(1).unwrap() != '|' {
             // collection node found
@@ -106,13 +112,11 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
                 }
 
                 let index = char.to_string().parse::<usize>().unwrap();
-                parameters.push(Some(collected_values[index - 1].clone()));
+                parameters.push(Some(collected_values[index].clone()));
             }
 
-            println!("{:?}", parameters);
-
             match node_type {
-                // node creationg functions
+                // node creating functions
                 "Stmt" => {
                     let stmt = Stmt {
                         stmt_type: node_type_type.to_string(),
@@ -134,7 +138,7 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
                             }
                             _ => None,
                         },
-                        elif_stmt: match parameters[3].clone() {
+                        stmt_1: match parameters[3].clone() {
                             Some(AstItem::Stmt(stmt)) => {
                                 if stmt.stmt_type == "None" {
                                     None
@@ -144,7 +148,7 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
                             }
                             _ => None,
                         },
-                        else_stmt: match parameters[4].clone() {
+                        stmt_2: match parameters[4].clone() {
                             Some(AstItem::Stmt(stmt)) => {
                                 if stmt.stmt_type == "None" {
                                     None
@@ -244,7 +248,7 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
                     None => {
                         // syntax error
                         // TODO: set up error handling :(
-                        println!("Oh no >:(");
+                        println!("Expected token '{}' found '{}'", next_s, next_i);
                         break;
                     }
                 }

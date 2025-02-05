@@ -53,7 +53,7 @@ pub struct SymbolTable {
 }
 
 impl SymbolTable {
-    pub fn new(symbols: Vec<Symbol>, level: ScopeLevels) -> Self {
+    fn new(symbols: Vec<Symbol>, level: ScopeLevels) -> Self {
         Self { symbols, level }
     }
 
@@ -211,20 +211,14 @@ pub fn traverse_ast(
                         enter_local_scope(*current_stmt.body.unwrap(), scope_stack.clone(), errors);
                 }
                 // enter elif stmt branch (if exists)
-                if current_stmt.elif_stmt.is_some() {
-                    errors = traverse_ast(
-                        *current_stmt.elif_stmt.unwrap(),
-                        scope_stack.clone(),
-                        errors,
-                    );
+                if current_stmt.stmt_1.is_some() {
+                    errors =
+                        traverse_ast(*current_stmt.stmt_1.unwrap(), scope_stack.clone(), errors);
                 }
                 // enter else body (if exists)
-                if current_stmt.else_stmt.is_some() {
-                    errors = traverse_ast(
-                        *current_stmt.else_stmt.unwrap(),
-                        scope_stack.clone(),
-                        errors,
-                    );
+                if current_stmt.stmt_2.is_some() {
+                    errors =
+                        traverse_ast(*current_stmt.stmt_2.unwrap(), scope_stack.clone(), errors);
                 }
             }
             "ElifStmt" | "ElseStmt" => {
@@ -286,6 +280,80 @@ pub fn traverse_ast(
                     }
                 }
                 // enter body (if exists)You need to complete the student progress document attached to this hoomework prior to your meeting.
+                if current_stmt.body.is_some() {
+                    errors =
+                        enter_local_scope(*current_stmt.body.unwrap(), scope_stack.clone(), errors);
+                }
+            }
+            "ForStmt" => {
+                // This one accually sucks so :P
+                // Check decleration statement (stmt_1)
+                errors = enter_local_scope(
+                    *current_stmt.clone().stmt_1.unwrap(),
+                    scope_stack.clone(),
+                    errors,
+                );
+
+                // add new variable to scope_stack
+                scope_stack.last_mut().unwrap().symbols.push(Symbol {
+                    name: current_stmt
+                        .clone()
+                        .stmt_1
+                        .unwrap()
+                        .decl_node
+                        .clone()
+                        .unwrap()
+                        .id
+                        .unwrap(),
+                    s_type: match current_stmt
+                        .clone()
+                        .stmt_1
+                        .unwrap()
+                        .decl_node
+                        .clone()
+                        .unwrap()
+                        .var_type
+                        .unwrap()
+                        .as_str()
+                    {
+                        "int" => SymbolTypes::Int,
+                        "float" => SymbolTypes::Float,
+                        "str" => SymbolTypes::Str,
+                        "bool" => SymbolTypes::Bool,
+                        "char" => SymbolTypes::Char,
+                        _ => SymbolTypes::Int, // shouldnt happen but rust insists
+                    },
+                });
+
+                // Check repeated assignment
+                errors = enter_local_scope(
+                    *current_stmt.clone().stmt_2.unwrap(),
+                    scope_stack.clone(),
+                    errors,
+                );
+
+                // Check condition
+                match type_check_expr(current_stmt.expr.unwrap(), scope_stack.clone()) {
+                    Ok(t) => {
+                        if t != SymbolTypes::Bool {
+                            println!("Expected Bool but found '{:?}'", t);
+
+                            errors += 1;
+                            if current_stmt.next.is_some() {
+                                current_stmt = *current_stmt.next.unwrap();
+                            } else {
+                                return errors;
+                            }
+                            continue;
+                        }
+                    }
+                    Err(_) => {
+                        println!("D: (very descriptive");
+                        errors += 1;
+                    } //TODO: temp error 3: electric boogy
+                }
+
+                // Check body
                 if current_stmt.body.is_some() {
                     errors =
                         enter_local_scope(*current_stmt.body.unwrap(), scope_stack.clone(), errors);
