@@ -1,36 +1,7 @@
 use std::collections::HashMap;
-use std::fs;
-
-pub fn parse_table() {
-    let data = fs::read_to_string("/home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/res/tables/operation_table").expect("AHHHHHH");
-    let lines = data.split('\n').collect::<Vec<&str>>();
-
-    for line in lines {
-        if line.len() == 0 {
-            continue;
-        }
-        let (condition, result) = (
-            line.split("=>").collect::<Vec<&str>>()[0]
-                .split(",")
-                .collect::<Vec<&str>>(),
-            line.split("=>").collect::<Vec<&str>>()[1],
-        );
-
-        println!(
-            "(({:?},{:?},{:?}), {:?}),",
-            condition[0], condition[1], condition[2], result
-        );
-        if condition[1] != condition[2] {
-            println!(
-                "(({:?},{:?},{:?}), {:?}),",
-                condition[0], condition[2], condition[1], result
-            );
-        }
-    }
-}
 
 pub fn load_operation_table() -> HashMap<(&'static str, &'static str, &'static str), &'static str> {
-    let hash = HashMap::from([
+    HashMap::from([
         // No inter-type operations
         // e.g (int + float)
         (("Add", "Int", "Int"), "Int"),
@@ -75,6 +46,5 @@ pub fn load_operation_table() -> HashMap<(&'static str, &'static str, &'static s
         (("GtEq", "Char", "Char"), "Bool"),
         (("LogOr", "Bool", "Bool"), "Bool"),
         (("LogAnd", "Bool", "Bool"), "Bool"),
-    ]);
-    hash
+    ])
 }

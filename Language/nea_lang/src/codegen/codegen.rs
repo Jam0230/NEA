@@ -1,4 +1,4 @@
-use crate::parser::parser::{Decl, Expr, Stmt};
+use crate::parser::parser::{Expr, Stmt};
 
 #[derive(Clone, Debug)]
 pub struct Symbol {
@@ -29,22 +29,20 @@ impl SymbolTable {
         }
     }
 
-    pub fn search_for_symbol(self, symbol: String) -> Symbol {
-        println!("{:?}", self.symbols.iter().filter(|x| x.name == symbol));
-        Symbol::new(String::from("hi"), String::from("hi"), 0)
+    pub fn search_for_symbol(self, symbol: String) -> Option<Symbol> {
+        self.symbols.iter().find(|x| x.name == symbol).cloned()
     }
 }
 
 #[derive(Debug)]
 pub struct Assembly {
-    text_string: String, // the assembly code
-    data_string: String, // stored data (floats, strings)
-    stack_offset: i32,   // current offset being used for variables
+    pub text_string: String, // the assembly code
+    pub data_string: String, // stored data (floats, strings)
+    pub stack_offset: i32,   // current offset being used for variables
     // (going to have to rethink this one)
-    symbol_table: Vec<Symbol>,
-    symbol_tables_table: Vec<SymbolTable>, // table symbol tables (im great at naming)
-    float_num: i32,                        // current number used for float labels
-    jump_num: i32,                         // current number used for jump point numbers
+    symbol_tables: Vec<SymbolTable>, // table symbol tables (im great at naming)
+    float_num: i32,                  // current number used for float labels
+    jump_num: i32,                   // current number used for jump point numbers
 }
 
 impl Assembly {
@@ -53,8 +51,7 @@ impl Assembly {
             text_string: String::new(),
             data_string: String::new(),
             stack_offset: 0,
-            symbol_table: Vec::new(),
-            symbol_tables_table: Vec::new(),
+            symbol_tables: vec![SymbolTable::new()],
             float_num: 0,
             jump_num: 0,
         }
@@ -62,11 +59,11 @@ impl Assembly {
 }
 
 fn enter_local_scope(current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
-    assembly.symbol_tables_table.push(SymbolTable::new());
+    assembly.symbol_tables.push(SymbolTable::new());
 
     assembly = recursive_gen(current_stmt, assembly);
 
-    assembly.symbol_tables_table.pop();
+    assembly.symbol_tables.pop();
     assembly
 }
 
@@ -90,7 +87,7 @@ left shift 1 move record if last move was right and go to generate mode
 fn expression_node_gen(
     node: Expr,
     mut regs_used: Vec<String>,
-    symbol_table: Vec<Symbol>,
+    symbol_tables: Vec<SymbolTable>,
     mut float_num: i32,
 ) -> (
     String,      /*Node str*/
@@ -116,15 +113,15 @@ fn expression_node_gen(
             }
 
             if register == String::new() {
-                print!("Expression is too chunky :O\n Please make it shorter for me :3");
+                print!("Expression is too chunky :O\n Please make it shorter for me");
                 return (String::new(), String::new(), regs_used, float_num);
             }
 
             match node.expr_type.as_str() {
                 "Bool" => {
-                    if register.chars().last().unwrap() == 'x' {
+                    if register.ends_with('x') {
                         register = format!("{}l", register.chars().nth(1).unwrap());
-                    } else if register.chars().last().unwrap() == 'i' {
+                    } else if register.ends_with('i') {
                         register = format!("{}l", register.replace("r", ""));
                     } else {
                         register += "b";
@@ -167,10 +164,15 @@ fn expression_node_gen(
         }
         "Id" => {
             let identifier = node.val.unwrap();
-            let symbol = symbol_table.iter().find(|x| x.name == identifier);
+            let mut symbol: Option<Symbol> = None;
+            for symboltable in symbol_tables.iter().rev() {
+                symbol = symboltable.clone().search_for_symbol(identifier.clone());
+            }
 
-            match symbol {
-                Some(s) => match s._type.as_str() {
+            // let symbol = symbol_table.iter().find(|x| x.name == identifier);
+
+            if let Some(s) = symbol {
+                match s._type.as_str() {
                     "int" | "bool" | "char" => {
                         let mut register = String::new();
                         for reg in usable_regs_int {
@@ -182,18 +184,17 @@ fn expression_node_gen(
                         }
 
                         if register == String::new() {
-                            print!(
-                                "Expression is too chunky :O\n Please make it shorter for me :3"
-                            );
+                            // could push extra operands to the stack
+                            print!("Expression is too chunky :O\n Please make it shorter for me");
                             return (String::new(), String::new(), regs_used, float_num);
                         }
 
                         let data_length;
                         match s._type.as_str() {
                             "bool" => {
-                                if register.chars().last().unwrap() == 'x' {
+                                if register.ends_with('x') {
                                     register = format!("{}l", register.chars().nth(1).unwrap());
-                                } else if register.chars().last().unwrap() == 'i' {
+                                } else if register.ends_with('i') {
                                     register = format!("{}l", register.replace("r", ""));
                                 } else {
                                     register += "b";
@@ -212,25 +213,19 @@ fn expression_node_gen(
                         node_str = format!("mov {}, {}[rbp-{}]", register, data_length, s.offset);
                     }
                     _ => {}
-                },
-                None => {} //TODO: Future error moment :3
+                }
             }
         }
         // ## Operations ##
         "Add" | "Sub" | "Mul" => {
-            if let Some('r') = regs_used.last().unwrap().chars().nth(0) {
+            if let Some('r') = regs_used.last().unwrap().chars().next() {
                 let operand_2 = regs_used.pop().unwrap();
                 let operand_1 = regs_used.pop().unwrap();
 
-                let opcode;
-                match node.expr_type.as_str() {
-                    "Mul" => {
-                        opcode = String::from("imul");
-                    }
-                    _ => {
-                        opcode = node.expr_type.to_lowercase();
-                    }
-                }
+                let opcode = match node.expr_type.as_str() {
+                    "Mul" => String::from("imul"),
+                    _ => node.expr_type.to_lowercase(),
+                };
 
                 node_str = format!("{} {}, {}", opcode, operand_1, operand_2);
                 regs_used.push(operand_1);
@@ -245,7 +240,7 @@ fn expression_node_gen(
             }
         }
         "Div" => {
-            if let Some('r') = regs_used.last().unwrap().chars().nth(0) {
+            if let Some('r') = regs_used.last().unwrap().chars().next() {
                 // if integer Operations
                 let operand_2 = regs_used.pop().unwrap();
                 let operand_1 = regs_used.pop().unwrap();
@@ -283,7 +278,7 @@ fn expression_node_gen(
             }
         }
         "Mod" => {
-            if let Some('r') = regs_used.last().unwrap().chars().nth(0) {
+            if let Some('r') = regs_used.last().unwrap().chars().next() {
                 // if rax / rdx in use push to stack and pop after
                 // put dividend (first one) in rax
                 // put divisor in next availble register
@@ -308,7 +303,7 @@ fn expression_node_gen(
                     }
                 }
 
-                if operand_2 == String::from("rdx") {
+                if operand_2 == *"rdx" {
                     node_str = format!(
                         "{}\nmov rax, {}\n mov {}, rdx\nxor rdx, rdx\ndiv {}\nmov {}, rdx",
                         node_str, operand_1, backup_reg, backup_reg, operand_1
@@ -341,7 +336,19 @@ fn expression_node_gen(
                 // V % M = V - trunc(V/M) * M
                 // Innacurate for larger numbers but :P
 
-                node_str = format!("movsd {trunc}, {value}\ndivsd {trunc}, {modulus}\npush rax\ncvttsd2si rax, {trunc}\ncvtsi2sd {trunc}, rax\npop rax\nmulsd {trunc}, {modulus}\nsubsd {value}, {trunc}", value=operand_1, modulus=operand_2, trunc=operand_3);
+                node_str = format!(
+                    "movsd {trunc}, {value}\n
+divsd {trunc}, {modulus}\n
+push rax\n
+cvttsd2si rax, {trunc}\n
+cvtsi2sd {trunc}, rax\n
+pop rax\n
+mulsd {trunc}, {modulus}\n
+subsd {value}, {trunc}",
+                    value = operand_1,
+                    modulus = operand_2,
+                    trunc = operand_3
+                );
                 regs_used.push(operand_1);
             }
         }
@@ -350,16 +357,16 @@ fn expression_node_gen(
             let mut operand_1 = regs_used.pop().unwrap();
             regs_used.push(operand_1.clone());
 
-            if operand_1.chars().last().unwrap() == 'x' {
+            if operand_1.ends_with('x') {
                 operand_1 = format!("{}l", operand_1.chars().nth(1).unwrap());
-            } else if operand_1.chars().last().unwrap() == 'i' {
+            } else if operand_1.ends_with('i') {
                 operand_1 = format!("{}l", operand_1.replace("r", ""));
             } else {
                 operand_1 += "b";
             }
-            if operand_2.chars().last().unwrap() == 'x' {
+            if operand_2.ends_with('x') {
                 operand_2 = format!("{}l", operand_2.chars().nth(1).unwrap());
-            } else if operand_2.chars().last().unwrap() == 'i' {
+            } else if operand_2.ends_with('i') {
                 operand_2 = format!("{}l", operand_2.replace("r", ""));
             } else {
                 operand_2 += "b";
@@ -373,9 +380,9 @@ fn expression_node_gen(
             let mut operand_1 = regs_used.pop().unwrap();
             regs_used.push(operand_1.clone());
 
-            if operand_1.chars().last().unwrap() == 'x' {
+            if operand_1.ends_with('x') {
                 operand_1 = format!("{}l", operand_1.chars().nth(1).unwrap());
-            } else if operand_1.chars().last().unwrap() == 'i' {
+            } else if operand_1.ends_with('i') {
                 operand_1 = format!("{}l", operand_1.replace("r", ""));
             } else {
                 operand_1 += "b";
@@ -392,7 +399,7 @@ fn expression_node_gen(
                     .replace("t", "")
             );
 
-            if let Some('r') = regs_used.last().unwrap().chars().nth(0) {
+            if let Some('r') = regs_used.last().unwrap().chars().next() {
                 let operand_2 = regs_used.pop().unwrap();
                 let operand_1 = regs_used.pop().unwrap();
 
@@ -405,9 +412,9 @@ fn expression_node_gen(
                     }
                 }
 
-                if return_reg.chars().last().unwrap() == 'x' {
+                if return_reg.ends_with('x') {
                     return_reg = format!("{}l", return_reg.chars().nth(1).unwrap());
-                } else if operand_1.chars().last().unwrap() == 'i' {
+                } else if operand_1.ends_with('i') {
                     return_reg = format!("{}l", return_reg.replace("r", ""));
                 } else {
                     return_reg += "b";
@@ -430,9 +437,9 @@ fn expression_node_gen(
                     }
                 }
 
-                if return_reg.chars().last().unwrap() == 'x' {
+                if return_reg.ends_with('x') {
                     return_reg = format!("{}l", return_reg.chars().nth(1).unwrap());
-                } else if operand_1.chars().last().unwrap() == 'i' {
+                } else if operand_1.ends_with('i') {
                     return_reg = format!("{}l", return_reg.replace("r", ""));
                 } else {
                     return_reg += "b";
@@ -453,7 +460,7 @@ fn expression_node_gen(
 
 fn rpngen(
     expression: Expr,
-    symbol_table: Vec<Symbol>,
+    symbol_tables: Vec<SymbolTable>,
     mut float_num: i32,
 ) -> (String, String, i32) {
     let mut moves = vec![0];
@@ -482,13 +489,13 @@ fn rpngen(
         }
 
         let (node_str, node_data_str, regs_used_temp, float_num_) =
-            expression_node_gen(current_node, regs_used, symbol_table.clone(), float_num);
+            expression_node_gen(current_node, regs_used, symbol_tables.clone(), float_num);
         regs_used = regs_used_temp;
         expression_str = format!("{}\n{}", expression_str, node_str);
         data_str = format!("{}\n{}", data_str, node_data_str);
         float_num = float_num_;
 
-        if moves.len() == 0 {
+        if moves.is_empty() {
             break;
         }
 
@@ -515,9 +522,8 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
             // ## Statements ##
             "ElseStmt" => {
                 // generate body
-                match current_stmt.clone().body {
-                    Some(body) => assembly = enter_local_scope(*body, assembly),
-                    None => {}
+                if let Some(body) = current_stmt.clone().body {
+                    assembly = enter_local_scope(*body, assembly)
                 }
             }
             "IfStmt" | "ElifStmt" => {
@@ -528,7 +534,7 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
 
                 let (expression_str, expr_data_str, float_num_) = rpngen(
                     current_stmt.clone().expr.unwrap(),
-                    assembly.symbol_table.clone(),
+                    assembly.symbol_tables.clone(),
                     assembly.float_num,
                 );
                 assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
@@ -542,20 +548,18 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                     assembly.text_string, expression_str, jump_num
                 );
 
-                match current_stmt.clone().body {
-                    Some(body) => assembly = enter_local_scope(*body, assembly),
-                    None => {}
+                if let Some(body) = current_stmt.clone().body {
+                    assembly = enter_local_scope(*body, assembly)
                 }
 
                 assembly.text_string = format!("{}\n.{}:", assembly.text_string, jump_num);
 
-                match current_stmt.clone().stmt_1 {
-                    Some(elif_stmt) => assembly = recursive_gen(*elif_stmt, assembly),
-                    None => {}
+                if let Some(elif_stmt) = current_stmt.clone().stmt_1 {
+                    assembly = recursive_gen(*elif_stmt, assembly)
                 }
-                match current_stmt.clone().stmt_2 {
-                    Some(else_stmt) => assembly = recursive_gen(*else_stmt, assembly),
-                    None => {}
+
+                if let Some(else_stmt) = current_stmt.clone().stmt_2 {
+                    assembly = recursive_gen(*else_stmt, assembly)
                 }
 
                 if current_stmt.stmt_type.as_str() == "IfStmt" {
@@ -576,7 +580,7 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
 
                 let (expression_str, expr_data_str, float_num_) = rpngen(
                     current_stmt.clone().expr.unwrap(),
-                    assembly.symbol_table.clone(),
+                    assembly.symbol_tables.clone(),
                     assembly.float_num,
                 );
                 assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
@@ -587,9 +591,8 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                     assembly.text_string, jump_num_top, expression_str, jump_num_bot
                 );
 
-                match current_stmt.clone().body {
-                    Some(body) => assembly = enter_local_scope(*body, assembly),
-                    None => {}
+                if let Some(body) = current_stmt.clone().body {
+                    assembly = enter_local_scope(*body, assembly);
                 }
 
                 assembly.text_string = format!(
@@ -597,11 +600,57 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                     assembly.text_string, jump_num_top, jump_num_bot
                 );
             }
+            "ForStmt" => {
+                // generate decleration stmt
+                // generate condition stmt
+                // generate body
+                // jmp point and repeat stmt at the end
+
+                let jump_num_top = assembly.jump_num;
+                let jump_num_bot = assembly.jump_num + 1;
+                assembly.jump_num += 2;
+
+                // generate control variable
+                assembly = recursive_gen(*current_stmt.clone().stmt_1.unwrap(), assembly);
+
+                // generate condition
+                let (condition_expr_string, condition_expr_data_str, float_num_) = rpngen(
+                    current_stmt.clone().expr.unwrap(),
+                    assembly.symbol_tables.clone(),
+                    assembly.float_num,
+                );
+
+                assembly.data_string =
+                    format!("{}\n{}", assembly.data_string, condition_expr_data_str);
+                assembly.float_num = float_num_;
+
+                assembly.text_string = format!(
+                    "{}\n.{}:{}\ncmp al,1\njne .{}",
+                    assembly.text_string, jump_num_top, condition_expr_string, jump_num_bot
+                );
+
+                // generate body
+                if let Some(body) = current_stmt.clone().body {
+                    assembly = enter_local_scope(*body, assembly);
+                }
+
+                // generate increment stmt
+                assembly = recursive_gen(*current_stmt.clone().stmt_2.unwrap(), assembly);
+
+                assembly.text_string = format!(
+                    "{}\njmp .{}\n.{}:",
+                    assembly.text_string, jump_num_top, jump_num_bot
+                );
+
+                assembly.symbol_tables.last_mut().unwrap().symbols.pop();
+
+                println!("{:?}", assembly.symbol_tables);
+            }
             // ## Variables ##
             "DeclStmt" => {
                 let (expression_str, expr_data_str, float_num_) = rpngen(
                     current_stmt.clone().decl_node.unwrap().value.unwrap(),
-                    assembly.symbol_table.clone(),
+                    assembly.symbol_tables.clone(),
                     assembly.float_num,
                 );
 
@@ -646,7 +695,19 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                     current_stmt.decl_node.unwrap().var_type.unwrap(),
                     assembly.stack_offset,
                 );
-                assembly.symbol_table.push(symbol);
+                assembly
+                    .symbol_tables
+                    .last_mut()
+                    .unwrap()
+                    .symbols
+                    .push(symbol.clone());
+
+                assembly
+                    .symbol_tables
+                    .last_mut()
+                    .unwrap()
+                    .symbols
+                    .push(symbol);
 
                 assembly.text_string = format!("{}\n{}", assembly.text_string, decl_str);
                 assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
@@ -665,62 +726,55 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                 let stmt_value_expr = current_stmt.decl_node.clone().unwrap().value.unwrap();
                 let assign_type = current_stmt.decl_node.clone().unwrap().ass_type.unwrap();
                 let identifier = current_stmt.decl_node.clone().unwrap().id;
-                let symbol = assembly
-                    .symbol_table
-                    .iter()
-                    .find(|x| x.name == identifier.clone().unwrap());
 
-                let full_expr: Expr;
+                let mut symbol: Option<Symbol> = None;
+                for symboltable in assembly.symbol_tables.iter().rev() {
+                    symbol = symboltable
+                        .clone()
+                        .search_for_symbol(identifier.clone().unwrap());
+                }
 
-                match assign_type.as_str() {
+                let full_expr: Expr = match assign_type.as_str() {
                     //TODO: Handle cases where "/=" is used (messes up due to
                     //how types have been implemented for division operations)
                     //might be a problem with semantic analysis
-                    "+=" => {
-                        full_expr = Expr {
-                            expr_type: String::from("Add"),
-                            left: Some(Box::new(Expr {
-                                expr_type: String::from("Id"),
-                                left: None,
-                                right: None,
-                                val: identifier,
-                            })),
-                            right: Some(Box::new(stmt_value_expr)),
-                            val: None,
-                        };
-                    }
-                    "-=" => {
-                        full_expr = Expr {
-                            expr_type: String::from("Sub"),
-                            left: Some(Box::new(Expr {
-                                expr_type: String::from("Id"),
-                                left: None,
-                                right: None,
-                                val: identifier,
-                            })),
-                            right: Some(Box::new(stmt_value_expr)),
-                            val: None,
-                        };
-                    }
-                    "*=" => {
-                        full_expr = Expr {
-                            expr_type: String::from("Mul"),
-                            left: Some(Box::new(Expr {
-                                expr_type: String::from("Id"),
-                                left: None,
-                                right: None,
-                                val: identifier,
-                            })),
-                            right: Some(Box::new(stmt_value_expr)),
-                            val: None,
-                        };
-                    }
-                    "=" => {
-                        full_expr = stmt_value_expr;
-                    }
+                    "+=" => Expr {
+                        expr_type: String::from("Add"),
+                        left: Some(Box::new(Expr {
+                            expr_type: String::from("Id"),
+                            left: None,
+                            right: None,
+                            val: identifier,
+                        })),
+                        right: Some(Box::new(stmt_value_expr)),
+                        val: None,
+                    },
+                    "-=" => Expr {
+                        expr_type: String::from("Sub"),
+                        left: Some(Box::new(Expr {
+                            expr_type: String::from("Id"),
+                            left: None,
+                            right: None,
+                            val: identifier,
+                        })),
+                        right: Some(Box::new(stmt_value_expr)),
+                        val: None,
+                    },
+                    "*=" => Expr {
+                        expr_type: String::from("Mul"),
+                        left: Some(Box::new(Expr {
+                            expr_type: String::from("Id"),
+                            left: None,
+                            right: None,
+                            val: identifier,
+                        })),
+                        right: Some(Box::new(stmt_value_expr)),
+                        val: None,
+                    },
+                    "=" => stmt_value_expr,
                     _ => {
                         // TODO: You could count this as an error but i mean :p
-                        full_expr = Expr {
+                        Expr {
                             expr_type: String::from("Add"),
                             left: Some(Box::new(Expr {
                                 expr_type: String::from("Id"),
@@ -730,20 +784,23 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                             })),
                             right: Some(Box::new(stmt_value_expr)),
                             val: None,
-                        };
+                        }
                     }
-                }
+                };
 
-                let (expression_str, expr_data_str, float_num_) =
-                    rpngen(full_expr, assembly.symbol_table.clone(), assembly.float_num);
+                let (expression_str, expr_data_str, float_num_) = rpngen(
+                    full_expr,
+                    assembly.symbol_tables.clone(),
+                    assembly.float_num,
+                );
 
                 assembly.float_num = float_num_;
 
                 let mut assign_str = String::new();
 
-                println!("{}", symbol.unwrap()._type);
+                println!("{}", symbol.clone().unwrap()._type);
 
-                match symbol.unwrap()._type.as_str() {
+                match symbol.clone().unwrap()._type.as_str() {
                     "int" => {
                         assign_str = format!(
                             "{}\nmov dword[rbp-{}], eax",
@@ -784,11 +841,6 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
     }
 }
 
-pub fn generate_assembly(ast: Stmt) {
-    println!(" ---- ASSEMBLY GENERATION  -----");
-    let mut assembly = Assembly::new();
-    assembly = recursive_gen(ast, assembly);
-
-    println!("code:{}", assembly.text_string);
-    println!("\ndata:{}", assembly.data_string);
+pub fn generate_assembly(ast: Stmt) -> Assembly {
+    recursive_gen(ast, Assembly::new())
 }

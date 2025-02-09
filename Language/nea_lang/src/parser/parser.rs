@@ -1,6 +1,6 @@
 use crate::{parser::parse_table::load_parse_table, scanner::scanner::Token};
 
-// types of nodes (miniaturised language)
+// types of nodes
 //
 // stmt (statement):
 //     type = If, elif, else, while, decl, assign
@@ -23,81 +23,71 @@ use crate::{parser::parse_table::load_parse_table, scanner::scanner::Token};
 // var_type:
 //     type = all literal types
 //
-// other posible in future:
-// param (parameter list)
-// and more parts for current nodes (case statement)
 
 #[derive(Debug, Clone)]
 pub struct Stmt {
-    pub stmt_type: String,         // type of statement ( if, else, while, ..)
-    pub decl_node: Option<Decl>,   // ast decleration node if decleration statement
-    pub expr: Option<Expr>,        // expression linked to statement ( conditions
-    pub body: Option<Box<Stmt>>,   // stmt branch linked to stmt
-    pub stmt_1: Option<Box<Stmt>>, // elif statement / for control variable
-    pub stmt_2: Option<Box<Stmt>>, // else statement / for increment
-    pub next: Option<Box<Stmt>>,   // next statement in branch
+    pub stmt_type: String,         // Type of statement ( if, else, while, ..)
+    pub decl_node: Option<Decl>,   // Ast decleration node if decleration statement
+    pub expr: Option<Expr>,        // Expression linked to statement ( conditions )
+    pub body: Option<Box<Stmt>>,   // Stmt branch linked to stmt
+    pub stmt_1: Option<Box<Stmt>>, // Elif statement / for control variable
+    pub stmt_2: Option<Box<Stmt>>, // Else statement / for increment
+    pub next: Option<Box<Stmt>>,   // Next statement in branch
 }
 
 #[derive(Debug, Clone)]
 pub struct Decl {
-    pub decl_type: String,  // type of declerations (assignment, decleration, ..)
-    pub id: Option<String>, // identifier used in decleration
-    pub var_type: Option<String>, // variable type used in decleration
-    pub value: Option<Expr>, // expression branch linked to decl
-    pub ass_type: Option<String>, // assignment type used for assignment
+    pub id: Option<String>,       // Identifier used in decleration
+    pub var_type: Option<String>, // Variable type used in decleration
+    pub value: Option<Expr>,      // Expression branch linked to decl
+    pub ass_type: Option<String>, // Assignment type used for assignment
 }
 
 #[derive(Debug, Clone)]
 pub struct Expr {
-    pub expr_type: String,        // expression type ( operator or literal )
-    pub left: Option<Box<Expr>>,  // expression on left of operators
-    pub right: Option<Box<Expr>>, // expression of right of operator
-    pub val: Option<String>,      // value of literal or identifier name
+    pub expr_type: String,        // Expression type ( operator or literal )
+    pub left: Option<Box<Expr>>,  // Expression on left of operators
+    pub right: Option<Box<Expr>>, // Expression of right of operator
+    pub val: Option<String>,      // Value of literal or identifier name
 }
 
 #[derive(Debug, Clone)]
 enum AstItem {
-    // used in the ast stack to allow multiple types in one vector
+    // Used in the ast stack to allow multiple types in one vector
     Stmt(Stmt),
     Decl(Decl),
     Expr(Expr),
     Terminal(String),
 }
 
-pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
+pub fn parse(tokens: &mut [Token]) -> Result<Stmt, String> {
     let hash = load_parse_table();
 
-    // index of token being parsed
+    // Index of token being parsed
     let mut token_index = 0;
 
-    // the two stacks for table driven parsing
+    // The two stacks for table driven parsing
     let mut stack = vec!["$", "<SS>"];
     let mut ast_stack: Vec<AstItem> = Vec::new();
 
     while !stack.is_empty() {
         let (next_s, next_i) = (stack.pop().unwrap(), tokens[token_index].clone());
-        println!(
-            "{} | {} | {:?}",
-            next_i,
-            next_s,
-            stack.iter().rev().collect::<Vec<&&str>>()
-        );
 
-        if next_s.chars().next().unwrap() == '|' && next_s.chars().nth(1).unwrap() != '|' {
+        if next_s.starts_with('|') && next_s.chars().nth(1).unwrap() != '|' {
             // collection node found
             let parts = next_s[1..next_s.len() - 1]
                 .split(',')
                 .collect::<Vec<&str>>();
 
             let (node_type, node_type_type) = (
-                parts[0].split('-').nth(0).unwrap(),
+                parts[0].split('-').next().unwrap(),
                 parts[0].split('-').nth(1).unwrap(),
             );
 
             let num_collected = parts[1].parse::<usize>().unwrap();
 
-            let mut collected_values: Vec<AstItem> = Vec::new(); // collecting the AST stack items
-                                                                 // used by the new node
+            let mut collected_values: Vec<AstItem> = Vec::new(); // Collecting the AST stack items
+                                                                 // Used by the new node
             for _ in 0..num_collected {
                 collected_values.push(ast_stack.pop().unwrap());
             }
@@ -105,7 +95,7 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
             let mut parameters: Vec<Option<AstItem>> = Vec::new();
 
             for char in parts[2].chars() {
-                // setting parameters for the node creation functions
+                // Setting parameters for the node creation functions
                 if char == '_' {
                     parameters.push(None);
                     continue;
@@ -116,7 +106,7 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
             }
 
             match node_type {
-                // node creating functions
+                // Node creating functions
                 "Stmt" => {
                     let stmt = Stmt {
                         stmt_type: node_type_type.to_string(),
@@ -173,7 +163,6 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
                 }
                 "Decl" => {
                     let decl = Decl {
-                        decl_type: node_type_type.to_string(),
                         id: match parameters[0].clone() {
                             Some(AstItem::Terminal(term)) => Some(term),
                             _ => None,
@@ -217,7 +206,7 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
             continue;
         }
 
-        // if both stack and input stream have the same terminal on top
+        // If both stack and input stream have the same terminal on top
         if next_s == next_i.contents.as_str() || next_s == format!("[{}]", next_i._type).as_str() {
             token_index += 1;
 
@@ -228,7 +217,7 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
             continue;
         }
 
-        // check type of token for rule
+        // Check type of token for rule
         match hash.get(&(next_s, format!("[{}]", next_i._type).as_str())) {
             Some(symbols) => {
                 for symbol in symbols.iter().rev() {
@@ -246,8 +235,7 @@ pub fn parse(tokens: &mut Vec<Token>) -> Result<Stmt, String> {
                         continue;
                     }
                     None => {
-                        // syntax error
-                        // TODO: set up error handling :(
+                        // Syntax error
                         println!("Expected token '{}' found '{}'", next_s, next_i);
                         break;
                     }

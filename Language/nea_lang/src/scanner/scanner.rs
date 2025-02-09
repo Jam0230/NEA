@@ -51,7 +51,7 @@ pub fn lexical_analyse(content: String) -> Result<Vec<Token>, String> {
                         if match_type != "Comment" && match_type != "WhiteSpace" {
                             tokens.push(Token {
                                 _type: String::from(match_type),
-                                contents: String::from(contents_buf),
+                                contents: contents_buf,
                             });
                         }
                         contents_buf = String::new();
@@ -76,7 +76,7 @@ pub fn lexical_analyse(content: String) -> Result<Vec<Token>, String> {
                     if match_type != "Comment" && match_type != "WhiteSpace" {
                         tokens.push(Token {
                             _type: String::from(match_type),
-                            contents: String::from(contents_buf),
+                            contents: contents_buf,
                         });
                     }
                     contents_buf = String::new();
@@ -97,9 +97,6 @@ pub fn lexical_analyse(content: String) -> Result<Vec<Token>, String> {
         _type: String::from("EOF"),
         contents: String::from("$"),
     });
-    // for token in tokens.clone() {
-    //     println!("{}", token);
-    // }
 
     Ok(tokens)
 }

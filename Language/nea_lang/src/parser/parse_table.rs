@@ -1,38 +1,11 @@
 use std::collections::HashMap;
-use std::fs;
-
-// used to generate parse table hash map
-// #[allow(dead_code)]
-// pub fn generate_parse_table() {
-//     let parse_table_data = fs::read_to_string(
-//         "/home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/res/tables/parse_table",
-//     )
-//     .expect("AHHHHHHHH but parsing :O");
-//     let rows = parse_table_data.split(";;").collect::<Vec<&str>>();
-//
-//     for row in rows {
-//         let lines = row.split('\n').collect::<Vec<&str>>();
-//         let left_nt = format!("<{}>", lines[0].split('=').next().unwrap());
-//
-//         for line_i in 1..lines.len() - 2 {
-//             let parts = lines[line_i].split("->").collect::<Vec<&str>>();
-//             let input_expected = parts[0].trim();
-//
-//             let mut output = parts[1].split(',').collect::<Vec<&str>>();
-//             output.retain(|x| x != &"");
-//             let coll_token = format!("|{},{}|", output.len(), left_nt);
-//
-//             output.push(coll_token.as_str());
-//             println!("(({:?}, {:?}), vec!{:?}),", left_nt, input_expected, output);
-//         }
-//     }
-// }
 
 pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static str>> {
     // <_> = non-terminal
     // [_] = terminal type
     // |_,_| = collection token (used in parsing to generate ast)
-    let hash = HashMap::from([
+
+    HashMap::from([
         (
             ("<SS>", "let"),
             vec!["<S>", "<SS>", "|Stmt-DeclStmt,2,1____0|"],
@@ -270,7 +243,5 @@ pub fn load_parse_table() -> HashMap<(&'static str, &'static str), Vec<&'static 
         (("<EA>", "[Bool]"), vec!["[Bool]", "|Expr-Bool,1,__0|"]),
         (("<EA>", "[Id]"), vec!["[Id]", "|Expr-Id,1,__0|"]),
         (("<EA>", "("), vec!["(", "<OE>", ")", "|Expr-Group,3,1__|"]),
-    ]);
-
-    hash
+    ])
 }

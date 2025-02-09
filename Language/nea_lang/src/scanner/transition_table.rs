@@ -1,36 +1,4 @@
 use std::collections::HashMap;
-use std::fs;
-
-#[allow(dead_code)]
-pub fn generate_trans_table() {
-    // just to create list for trans_table loading (might change to just load from file later)
-    let trans_data = fs::read_to_string(
-        "/home/jam/Documents/School/ComputerScience/NEA/Language/nea_lang/res/tables/trans_table",
-    )
-    .expect("AHHHHHHHHHHHHH");
-
-    let lines = trans_data.split('\n');
-
-    let mut current = 0;
-    let mut values: Vec<(&str, u32)> = Vec::new();
-
-    for line in lines {
-        if line.len() == 0 {
-            println!("({}, vec!{:?}),", current, values);
-            break;
-        }
-        let temp: Vec<&str> = line.split(':').collect();
-        if temp[0].parse::<i32>().expect("AHHHHH") == current {
-            values.push((temp[1], temp[2].parse::<u32>().expect("AHHHH")));
-        } else {
-            println!("({}, vec!{:?}),", current, values);
-            values = Vec::new();
-            values.push((temp[1], temp[2].parse::<u32>().expect("AHHHH")));
-
-            current = temp[0].parse::<i32>().expect("AHHH");
-        }
-    }
-}
 
 pub fn load_trans_table() -> (
     HashMap<u32, Vec<(&'static str, u32)>>,

@@ -2,17 +2,17 @@ use std::io::{Error, ErrorKind};
 use std::path::PathBuf;
 use std::{env, fs};
 
-fn get_file_path(file_name: &str) -> Result<PathBuf, std::io::Error> {
+pub fn get_file_path(file_name: &str) -> Result<PathBuf, std::io::Error> {
     // Returns file path of given file name
     let current_dir = env::current_dir()?;
     let path = current_dir.join(file_name);
     if path.exists() {
-        return Ok(path);
+        Ok(path)
     } else {
-        return Err(Error::new(
+        Err(Error::new(
             ErrorKind::NotFound,
             format!("{:?} cannot be found: no such file or directory", path),
-        ));
+        ))
     }
 }
 
@@ -22,5 +22,5 @@ pub fn read_file(file_name: &str) -> Result<String, std::io::Error> {
 
     let file_contents = fs::read_to_string(file_path)?;
 
-    return Ok(file_contents);
+    Ok(file_contents)
 }
