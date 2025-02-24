@@ -12,6 +12,7 @@ enum SymbolTypes {
 
 impl SymbolTypes {
     fn stringify(self) -> String {
+        // Parses a type into a string
         match self {
             SymbolTypes::Int => String::from("Int"),
             SymbolTypes::Float => String::from("Float"),
@@ -22,6 +23,7 @@ impl SymbolTypes {
     }
 
     fn from_string(type_s: String) -> SymbolTypes {
+        // Parses a string into a type
         match type_s.as_str() {
             "Int" => SymbolTypes::Int,
             "Float" => SymbolTypes::Float,
@@ -37,6 +39,7 @@ impl SymbolTypes {
 struct Symbol {
     // Identifier
     name: String,
+    // Type
     s_type: SymbolTypes,
 }
 
@@ -47,8 +50,8 @@ pub struct SymbolTable {
 }
 
 impl SymbolTable {
+    // returns true if searched symbol is in the table
     fn search_for_symbol(self, symbol: String) -> bool {
-        // returns true if searched symbol is in the table
         self.symbols.iter().filter(|x| x.name == symbol).count() != 0
     }
 }
@@ -74,12 +77,15 @@ fn type_check_expr(
     match current_expr.expr_type.as_str() {
         "Id" => {
             // Identifier
+
+            // get type from symbol table
             let _type =
                 search_scope_stack(current_expr.val.clone().unwrap(), symbol_tables.clone());
 
             match _type {
                 Some(t) => Ok(t),
                 None => Err(format!(
+                    // return error if symbol not found
                     "No symbol '{}' in current scope",
                     current_expr.val.unwrap()
                 )),
@@ -94,24 +100,29 @@ fn type_check_expr(
             // Binary Operation
             let operation_table = operation_table::load_operation_table();
 
+            // type check both sides of the operation
             let left = type_check_expr(*current_expr.left.unwrap(), symbol_tables.clone());
             let right = type_check_expr(*current_expr.right.unwrap(), symbol_tables.clone());
 
             match (left.clone(), right.clone()) {
                 (Ok(l), Ok(r)) => {
+                    // both sides return a type
                     let l_string = l.stringify();
                     let r_string = r.stringify();
 
                     let result_type = operation_table.get(&(
+                        // check opearation table for the types used
                         current_expr.expr_type.as_str(),
                         l_string.as_str(),
                         r_string.as_str(),
                     ));
 
                     match result_type {
+                        // return type from operation table if types are allowed for operation
                         Some(r) => Ok(SymbolTypes::from_string(String::from(*r))),
                         None => Err(format!(
-                            "cannot {} a {} and a {}",
+                            // Combination of types not found in operation table
+                            "Could not perform operation '{}' with types: \n\t{:?} - {:?}",
                             current_expr.expr_type.as_str(),
                             l_string,
                             r_string,
@@ -119,6 +130,7 @@ fn type_check_expr(
                     }
                 }
                 _ => Err(format!(
+                    // return error if a side didnt return a type
                     "Could not perform operation '{}' with types: \n\t{:?} - {:?}",
                     current_expr.expr_type, left, right
                 )),
@@ -129,10 +141,12 @@ fn type_check_expr(
             let val = type_check_expr(*current_expr.left.unwrap(), symbol_tables.clone());
 
             if val.clone().unwrap() == SymbolTypes::Bool {
+                // if type isnt a boolean return error
                 return Ok(SymbolTypes::Bool);
             }
             Err(format!("Cannot not a '{:?}'", val))
         }
+        // return type of contents of group
         "Group" => type_check_expr(*current_expr.left.unwrap(), symbol_tables.clone()),
         _ => Err(format!(
             "Unknown Expression type {}",
@@ -150,11 +164,7 @@ fn enter_local_scope(current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>, erro
     traverse_ast(current_stmt, scope_stack, errors)
 }
 
-pub fn traverse_ast(
-    mut current_stmt: Stmt,
-    mut scope_stack: Vec<SymbolTable>,
-    mut errors: i32,
-) -> i32 {
+fn traverse_ast(mut current_stmt: Stmt, mut scope_stack: Vec<SymbolTable>, mut errors: i32) -> i32 {
     loop {
         match current_stmt.stmt_type.as_str() {
             "IfStmt" => {
@@ -272,7 +282,6 @@ pub fn traverse_ast(
                         .stmt_1
                         .unwrap()
                         .decl_node
-                        .clone()
                         .unwrap()
                         .id
                         .unwrap(),
@@ -281,7 +290,6 @@ pub fn traverse_ast(
                         .stmt_1
                         .unwrap()
                         .decl_node
-                        .clone()
                         .unwrap()
                         .var_type
                         .unwrap()
@@ -469,9 +477,11 @@ pub fn traverse_ast(
 }
 
 pub fn semantic_analyser(ast: Stmt) -> i32 {
+    // create a new scope_stack
     let scope_stack: Vec<SymbolTable> = vec![SymbolTable {
         symbols: Vec::new(),
     }];
 
+    // semanticly analyse
     traverse_ast(ast, scope_stack, 0)
 }

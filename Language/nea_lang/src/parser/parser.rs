@@ -71,32 +71,33 @@ pub fn parse(tokens: &mut [Token]) -> Result<Stmt, String> {
     let mut ast_stack: Vec<AstItem> = Vec::new();
 
     while !stack.is_empty() {
-        let (next_s, next_i) = (stack.pop().unwrap(), tokens[token_index].clone());
+        // find the next stack item and input token
+        let (next_stack_item, next_token) = (stack.pop().unwrap(), tokens[token_index].clone());
 
-        if next_s.starts_with('|') && next_s.chars().nth(1).unwrap() != '|' {
-            // collection node found
-            let parts = next_s[1..next_s.len() - 1]
+        if next_stack_item.starts_with('|') && next_stack_item.chars().nth(1).unwrap() != '|' {
+            // A collection node has been encountered
+
+            // split up the information inside the collection node
+            let parts = next_stack_item[1..next_stack_item.len() - 1]
                 .split(',')
                 .collect::<Vec<&str>>();
-
             let (node_type, node_type_type) = (
                 parts[0].split('-').next().unwrap(),
                 parts[0].split('-').nth(1).unwrap(),
             );
-
             let num_collected = parts[1].parse::<usize>().unwrap();
 
-            let mut collected_values: Vec<AstItem> = Vec::new(); // Collecting the AST stack items
-                                                                 // Used by the new node
+            // collect the top items on the AST stack for use in the new ast stack item
+            let mut collected_values: Vec<AstItem> = Vec::new();
             for _ in 0..num_collected {
                 collected_values.push(ast_stack.pop().unwrap());
             }
 
+            // Setting the parameters used for the new ast stack item
             let mut parameters: Vec<Option<AstItem>> = Vec::new();
-
             for char in parts[2].chars() {
-                // Setting parameters for the node creation functions
                 if char == '_' {
+                    // '_' denotes specific struct item should be empty
                     parameters.push(None);
                     continue;
                 }
@@ -105,8 +106,8 @@ pub fn parse(tokens: &mut [Token]) -> Result<Stmt, String> {
                 parameters.push(Some(collected_values[index].clone()));
             }
 
+            // create a new node based on the collection type
             match node_type {
-                // Node creating functions
                 "Stmt" => {
                     let stmt = Stmt {
                         stmt_type: node_type_type.to_string(),
@@ -207,19 +208,24 @@ pub fn parse(tokens: &mut [Token]) -> Result<Stmt, String> {
         }
 
         // If both stack and input stream have the same terminal on top
-        if next_s == next_i.contents.as_str() || next_s == format!("[{}]", next_i._type).as_str() {
+        if next_stack_item == next_token.contents.as_str()
+            || next_stack_item == format!("[{}]", next_token._type).as_str()
+        {
             token_index += 1;
 
-            if next_s != "$" {
-                ast_stack.push(AstItem::Terminal(next_i.contents));
+            // add terminal onto the ast stack
+            if next_stack_item != "$" {
+                ast_stack.push(AstItem::Terminal(next_token.contents));
             }
 
             continue;
         }
 
         // Check type of token for rule
-        match hash.get(&(next_s, format!("[{}]", next_i._type).as_str())) {
+        match hash.get(&(next_stack_item, format!("[{}]", next_token._type).as_str())) {
             Some(symbols) => {
+                // if the type of token is part of a rule add the
+                // expanded items onto the stack
                 for symbol in symbols.iter().rev() {
                     stack.push(symbol);
                 }
@@ -227,22 +233,32 @@ pub fn parse(tokens: &mut [Token]) -> Result<Stmt, String> {
             }
             None => {
                 // check contents of token for rule
-                match hash.get(&(next_s, next_i.contents.as_str())) {
+                match hash.get(&(next_stack_item, next_token.contents.as_str())) {
                     Some(symbols) => {
+                        // if the contents of the token are part of a
+                        // rule add the expanded items onto the stack
                         for symbol in symbols.iter().rev() {
                             stack.push(symbol);
                         }
                         continue;
                     }
                     None => {
-                        // Syntax error
-                        println!("Expected token '{}' found '{}'", next_s, next_i);
+                        // The current token is not part of any possible rules so an error is
+                        // raised
+                        println!(
+                            "Expected token '{}' found '{}'",
+                            next_stack_item, next_token
+                        );
                         break;
                     }
                 }
             }
         }
     }
+
+    // check if the last item on the ast_stack is a stmt
+    // if so return it as the AST
+    // otherwise return an error
     match ast_stack[0].clone() {
         AstItem::Stmt(stmt) => Ok(stmt),
         _ => Err(String::new()),
