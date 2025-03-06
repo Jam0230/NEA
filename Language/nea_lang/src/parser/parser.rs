@@ -74,6 +74,13 @@ pub fn parse(tokens: &mut [Token]) -> Result<Stmt, String> {
         // find the next stack item and input token
         let (next_stack_item, next_token) = (stack.pop().unwrap(), tokens[token_index].clone());
 
+        // println!(
+        //     "{} | {} | {:?}",
+        //     next_token,
+        //     next_stack_item,
+        //     stack.iter().rev().collect::<Vec<&&str>>()
+        // );
+
         if next_stack_item.starts_with('|') && next_stack_item.chars().nth(1).unwrap() != '|' {
             // A collection node has been encountered
 

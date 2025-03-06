@@ -40,8 +40,9 @@ pub struct Assembly {
     pub data_string: String,         // stored data (floats, strings)
     pub stack_offset: i32,           // current offset being used for variables
     symbol_tables: Vec<SymbolTable>, // table symbol tables
-    float_num: i32,                  // current number used for float labels
-    jump_num: i32,                   // current number used for jump point numbers
+    float_num: i32,                  // current number used for float symbol_table
+    str_num: i32,
+    jump_num: i32, // current number used for jump point numbers
 }
 
 impl Assembly {
@@ -53,6 +54,7 @@ impl Assembly {
             stack_offset: 0,
             symbol_tables: vec![SymbolTable::new()],
             float_num: 0,
+            str_num: 0,
             jump_num: 0,
         }
     }
@@ -92,16 +94,23 @@ fn expression_node_gen(
     mut regs_used: Vec<String>,
     symbol_tables: Vec<SymbolTable>,
     mut float_num: i32,
+    mut str_num: i32,
+    func: bool,
 ) -> (
     String,      /*Node str*/
     String,      /*Data Str*/
     Vec<String>, /*Used Regs*/
     i32,         /*Float num*/
+    i32,         /*Str num*/
 ) {
     let mut node_str = String::new();
     let mut data_str = String::new();
 
-    let usable_regs_int = ["rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"];
+    let usable_regs_int = if func {
+        vec!["rdi", "rsi", "rdx", "rcx", "r8", "r9"]
+    } else {
+        vec!["rax", "rcx", "rdx", "rsi", "rdi", "r8", "r9", "r10", "r11"]
+    };
 
     match node.expr_type.as_str() {
         // ## Literals ##
@@ -119,7 +128,7 @@ fn expression_node_gen(
             // incase no registers are available
             if register == String::new() {
                 print!("Expression is too chunky :O\n Please make it shorter for me");
-                return (String::new(), String::new(), regs_used, float_num);
+                return (String::new(), String::new(), regs_used, float_num, str_num);
             }
 
             // change register size for differing literals
@@ -157,6 +166,28 @@ fn expression_node_gen(
                     node_str = format!("mov {}, {}", register, node.val.unwrap());
                 }
             }
+        }
+        "Str" => {
+            // find next unused register
+            let mut register = String::new();
+            for reg in usable_regs_int {
+                if !regs_used.contains(&String::from(reg)) {
+                    register = String::from(reg);
+                    regs_used.push(String::from(reg));
+                    break;
+                }
+            }
+
+            // incase no registers are available
+            if register == String::new() {
+                print!("Expression is too chunky :O\n Please make it shorter for me");
+                return (String::new(), String::new(), regs_used, float_num, str_num);
+            }
+
+            // add code to assembly struct
+            node_str = format!("mov {}, s{}", register, str_num);
+            data_str = format!("s{}: db {},10, 0", str_num, node.val.unwrap());
+            str_num += 1;
         }
         "Float" => {
             // find next unused xmm~ register
@@ -202,7 +233,7 @@ fn expression_node_gen(
                         if register == String::new() {
                             // could push extra operands to the stack
                             print!("Expression is too chunky :O\n Please make it shorter for me");
-                            return (String::new(), String::new(), regs_used, float_num);
+                            return (String::new(), String::new(), regs_used, float_num, str_num);
                         }
 
                         // change data length based on typing
@@ -466,25 +497,35 @@ subsd {value}, {trunc}",
                 );
             }
         }
+        "List" => {
+            if node.left.unwrap().expr_type == "float" {
+                println!(":3");
+            }
+
+            if node.right.unwrap().expr_type == "float" {
+                println!(":3");
+            }
+        }
         _ => {
             println!("{}", node.expr_type);
         }
     }
-    (node_str, data_str, regs_used, float_num)
+    (node_str, data_str, regs_used, float_num, str_num)
 }
 
 fn rpngen(
     expression: Expr,
     symbol_tables: Vec<SymbolTable>,
     mut float_num: i32,
-) -> (String, String, i32) {
+    mut str_num: i32,
+    func: bool,
+) -> (String, String, i32, i32) {
     let mut moves = vec![0]; // moves to follow
     let mut skipleft = false; // flag to skip moving to the left
     let mut expression_str = String::new(); // output code string for the expression
     let mut data_str = String::new(); // ouput data string for the expression
 
     let mut regs_used: Vec<String> = Vec::new(); // registers used in the expression
-
     loop {
         // follow the moves in <moves>
         // 0 = left
@@ -510,12 +551,19 @@ fn rpngen(
         }
 
         // generate the node
-        let (node_str, node_data_str, regs_used_temp, float_num_) =
-            expression_node_gen(current_node, regs_used, symbol_tables.clone(), float_num);
+        let (node_str, node_data_str, regs_used_temp, float_num_, str_num_) = expression_node_gen(
+            current_node,
+            regs_used,
+            symbol_tables.clone(),
+            float_num,
+            str_num,
+            func,
+        );
         regs_used = regs_used_temp;
         expression_str = format!("{}\n{}", expression_str, node_str);
         data_str = format!("{}\n{}", data_str, node_data_str);
         float_num = float_num_;
+        str_num = str_num_;
 
         // if at the end of the expression
         if moves.is_empty() {
@@ -533,7 +581,7 @@ fn rpngen(
             skipleft = true;
         }
     }
-    (expression_str, data_str, float_num)
+    (expression_str, data_str, float_num, str_num)
 }
 
 /*
@@ -545,7 +593,6 @@ recursivly go through the ast adding the generated assembly to the correct strin
   */
 fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
     loop {
-        println!("{:#?}", assembly);
         match current_stmt.stmt_type.as_str() {
             // ## Statements ##
             "ElseStmt" => {
@@ -561,13 +608,16 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                 // generate other parts of stmt (elif's and else)
 
                 // generate condition expression
-                let (expression_str, expr_data_str, float_num_) = rpngen(
+                let (expression_str, expr_data_str, float_num_, str_num_) = rpngen(
                     current_stmt.clone().expr.unwrap(),
                     assembly.symbol_tables.clone(),
                     assembly.float_num,
+                    assembly.str_num,
+                    false,
                 );
                 assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
                 assembly.float_num = float_num_;
+                assembly.str_num = str_num_;
 
                 let jump_num = assembly.jump_num;
                 assembly.jump_num += 1;
@@ -616,13 +666,16 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                 assembly.jump_num += 2;
 
                 // generate condition expression
-                let (expression_str, expr_data_str, float_num_) = rpngen(
+                let (expression_str, expr_data_str, float_num_, str_num_) = rpngen(
                     current_stmt.clone().expr.unwrap(),
                     assembly.symbol_tables.clone(),
                     assembly.float_num,
+                    assembly.str_num,
+                    false,
                 );
                 assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
                 assembly.float_num = float_num_;
+                assembly.str_num = str_num_;
 
                 // generate condition
                 assembly.text_string = format!(
@@ -655,15 +708,18 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                 assembly = recursive_gen(*current_stmt.clone().stmt_1.unwrap(), assembly);
 
                 // generate condition
-                let (condition_expr_string, condition_expr_data_str, float_num_) = rpngen(
+                let (condition_expr_string, condition_expr_data_str, float_num_, str_num_) = rpngen(
                     current_stmt.clone().expr.unwrap(),
                     assembly.symbol_tables.clone(),
                     assembly.float_num,
+                    assembly.str_num,
+                    false,
                 );
 
                 assembly.data_string =
                     format!("{}\n{}", assembly.data_string, condition_expr_data_str);
                 assembly.float_num = float_num_;
+                assembly.str_num = str_num_;
 
                 assembly.text_string = format!(
                     "{}\n.{}:{}\ncmp al,1\njne .{}",
@@ -686,13 +742,16 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
             // ## Variables ##
             "DeclStmt" => {
                 // generate expression for decl stmt
-                let (expression_str, expr_data_str, float_num_) = rpngen(
+                let (expression_str, expr_data_str, float_num_, str_num_) = rpngen(
                     current_stmt.clone().decl_node.unwrap().value.unwrap(),
                     assembly.symbol_tables.clone(),
                     assembly.float_num,
+                    assembly.str_num,
+                    false,
                 );
 
                 assembly.float_num = float_num_;
+                assembly.str_num = str_num_;
 
                 let mut decl_str = String::new();
 
@@ -817,13 +876,16 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                 };
 
                 // generate new expression
-                let (expression_str, expr_data_str, float_num_) = rpngen(
+                let (expression_str, expr_data_str, float_num_, str_num_) = rpngen(
                     full_expr,
                     assembly.symbol_tables.clone(),
                     assembly.float_num,
+                    assembly.str_num,
+                    false,
                 );
 
                 assembly.float_num = float_num_;
+                assembly.str_num = str_num_;
 
                 let mut assign_str = String::new();
 
@@ -860,7 +922,31 @@ fn recursive_gen(mut current_stmt: Stmt, mut assembly: Assembly) -> Assembly {
                 assembly.text_string = format!("{}\n{}", assembly.text_string, assign_str);
                 assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
             }
-            _ => {}
+            "PrintFunc" => {
+                // xor rax (set to zero)
+                // generate param list
+                // generate print func
+
+                let (expression_str, expr_data_str, float_num_, str_num_) = rpngen(
+                    current_stmt.expr.unwrap(),
+                    assembly.symbol_tables.clone(),
+                    assembly.float_num,
+                    assembly.str_num,
+                    true,
+                );
+
+                assembly.float_num = float_num_;
+                assembly.str_num = str_num_;
+
+                assembly.text_string = format!(
+                    "{}\npush rax\nxor rax, rax\n{}\ncall printf\npop rax",
+                    assembly.text_string, expression_str
+                );
+                assembly.data_string = format!("{}\n{}", assembly.data_string, expr_data_str);
+            }
+            _ => {
+                // println!("{:?}", current_stmt.stmt_type);
+            }
         }
 
         // continue loop with next expression or return complete assembly code

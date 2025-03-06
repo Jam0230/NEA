@@ -106,7 +106,7 @@ pub fn load_trans_table() -> (
         (53, vec![("c", 43), ("[a-bd-z_0-9]", 86)]),
         (54, vec![("r", 55), ("u", 57), ("[a-qstv-z_0-9]", 86)]),
         (55, vec![("i", 56), ("[a-hj-z_0-9]", 86)]),
-        (56, vec![("v", 34), ("[a-uw-z_0-9]", 86)]),
+        (56, vec![("v", 34), ("n", 93), ("[a-mo-uw-z_0-9]", 86)]),
         (57, vec![("b", 34), ("[ac-z_0-9]", 86)]),
         (59, vec![("o", 60), ("[a-np-z_0-9]", 86)]),
         (60, vec![("l", 31), ("[a-km-z_0-9]", 86)]),
@@ -133,6 +133,7 @@ pub fn load_trans_table() -> (
         (88, vec![("=", 90)]),
         (89, vec![("=", 77)]),
         (91, vec![("=", 77)]),
+        (93, vec![("t", 94), ("[a-su-z_0-9]", 86)]),
     ]);
     let excepting_states = vec![
         (1, "Id"),
@@ -216,6 +217,7 @@ pub fn load_trans_table() -> (
         (90, "Assignment"),
         (91, "Logical"),
         (92, "Logical"),
+        (94, "Print"),
     ];
     (hash, excepting_states)
 }

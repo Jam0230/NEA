@@ -1,4 +1,1 @@
-for (let int x = 0; x>=3; x+=1){
-
-  }
-
+for (let int c = 1; c <= 100; c+=1){if c % 3 == 0 && c % 5 == 0{print("FizzBuzz");}elif c%3 == 0{print("Fizz");}elif c%5 == 0{print("Buzz");}else {print("%i", c);}}

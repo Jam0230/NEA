@@ -1,4 +1,4 @@
-use std::env::args;
+use std::env;
 use utils::file_input;
 
 mod codegen;
@@ -6,10 +6,6 @@ mod parser;
 mod scanner;
 mod semantics;
 mod utils;
-
-fn print_error(error: &str) {
-    println!("{}\n try 'tempname --help' for more information", error);
-}
 
 fn print_help() {
     //prints the help information
@@ -23,24 +19,28 @@ Options:
 }
 
 fn main() {
-    let args: Vec<_> = args().collect();
+    let args: Vec<_> = env::args().collect();
 
     if args.len() == 1 {
-        print_error("No arguments given!");
+        println!("No arguments given!\n try 'tempname --help' for more information");
         return;
     }
 
     for arg in args[1..].iter() {
         match arg.as_str() {
             "-h" | "--help" => {
+                // print out help info and dont do anything else
                 print_help();
                 return;
             }
             _ => {
-                if !arg.starts_with('-') {
+                if arg.chars().next() != Some('-') {
                     // if unknown arg and not last arg
                     if &args[args.len() - 1] != arg {
-                        print_error(format!("Unkown argument '{}'!", arg).as_str());
+                        println!(
+                            "Unknown argument '{}'!\n try 'tempname --help' for more information",
+                            arg
+                        );
                         return;
                     }
 
@@ -54,6 +54,7 @@ fn main() {
 
                             match _ast {
                                 Ok(ast) => {
+                                    // println!("{:#?}", ast);
                                     let semantic_errs =
                                         semantics::semantic_analysis::semantic_analyser(
                                             ast.clone(),
@@ -78,7 +79,10 @@ fn main() {
                     }
                 } else {
                     // unknown argument
-                    print_error(format!("Unkown argument '{}'!", arg).as_str());
+                    println!(
+                        "Unknown argument '{}'!\n try 'tempname --help' for more information",
+                        arg
+                    );
                 }
             }
         }

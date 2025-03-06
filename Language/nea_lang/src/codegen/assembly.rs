@@ -15,13 +15,14 @@ impl Assembly {
 
         // final code for the assembly
         let text_string = format!(
-            "section .text\nmain:\npush rbp\nmov rbp,rsp\nsub rsp,{}\n{}\nadd rsp,8\npop rbp\nret",
+            "section .text\nmain:\npush rbp\nmov rbp,rsp\nsub rsp,{}\n{}\nadd rsp,{}\npop rbp\nret",
             self.stack_offset,
             self.text_string
                 .split("\n")
                 .filter(|&x| !x.is_empty())
                 .collect::<Vec<&str>>()
-                .join("\n")
+                .join("\n"),
+            self.stack_offset
         );
 
         // the final assembly string

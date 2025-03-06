@@ -122,6 +122,7 @@ Woah new line :O
             | <If_Stmt>
             | <While_Stmt>
             | <For_Stmt>
+            | <Print_Func_Stmt> ";"
 
 <Declaration_Stmt> = "let" [Type] [Id] "=" <Or_Expr> 
 
@@ -140,6 +141,12 @@ Woah new line :O
 <While_Stmt> = "while" <Or_Expr> "{" <Statements> "}"
 
 <For_Stmt> = "for" "(" <Decleration_Stmt> ";" <Or_Expr> ";" <Or_Expr> ") "{" <Statements> "}"
+
+<Print_Func_Stmt> = [Print] "(" "[String]" "," "<Identifier_List>" ")"
+
+<Identifier_List> = <Or_Expr> <Identifier_list_prime>
+<Identifier_list_prime> = "," <Or_expr> <Identifier_list_prime>
+                        | ε
 
 <Or_Expr> = <And_Expr> <Or_Expr_Prime>
 <Or_Expr_Prime> = "||" <And_Expr> <Or_Expr_Prime>
